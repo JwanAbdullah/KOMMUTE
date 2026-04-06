@@ -1,0 +1,105 @@
+export const stops = [
+  "Parking 900",
+  "Parking 404",
+  "Station 312",
+  "Building 22",
+  "Station 319",
+  "Building 58",
+  "Station 309",
+  "Station 310",
+  "Station 314",
+  "Square",
+  "Restaurant",
+  "DTV",
+];
+
+export const routes = [
+  {
+    id: "route-1",
+    name: "Route One",
+    color: "orange",
+    frequency: "Every 15 mins",
+    timing: "6:30 AM - 5:30 PM",
+    eta: "5 mins",
+    stops: [
+      { name: "Parking 900", served: "900, 1000, Square" },
+      { name: "Parking 404", served: "404, 406, 407" },
+      { name: "27", served: "27, 28, Clinic" },
+      { name: "Parking 900", served: "900, 1000, Square" },
+    ],
+  },
+  {
+    id: "route-2",
+    name: "Route Two",
+    color: "green",
+    frequency: "Every 10 mins",
+    timing: "6:30 AM - 5:30 PM",
+    eta: "3 mins",
+    stops: [
+      { name: "Parking 900", served: "900, 1000, Square" },
+      { name: "27", served: "27, 28, Clinic" },
+      { name: "Station 312", served: "4, 5, 6, 7, 14, 68, 75" },
+      { name: "Building 22", served: "22, 23, 24, 25, 59" },
+      { name: "Station 319", served: "700" },
+      { name: "Building 58", served: "57, 58" },
+      { name: "Station 309", served: "56, 57, 58, 70" },
+      { name: "Station 310", served: "800, 42, 61, 62" },
+    ],
+  },
+  {
+    id: "route-3",
+    name: "Route Three",
+    color: "blue",
+    frequency: "Every 10 mins",
+    timing: "6:30 AM - 5:30 PM",
+    eta: "7 mins",
+    stops: [
+      { name: "Parking 404", served: "404, 406, 407" },
+      { name: "Station 312", served: "4, 5, 6, 7, 14, 68, 75" },
+      { name: "Building 22", served: "22, 23, 24, 25, 59" },
+      { name: "Station 319", served: "700" },
+      { name: "Building 58", served: "57, 58" },
+      { name: "Station 309", served: "56, 57, 58, 70" },
+      { name: "Station 310", served: "800, 42, 61, 62" },
+    ],
+  },
+  {
+    id: "route-5",
+    name: "Route Five",
+    color: "red",
+    frequency: "Every 10 mins",
+    timing: "6:30 AM - 5:30 PM",
+    eta: "No live GPS",
+    stops: [
+      { name: "Station 319", served: "700" },
+      { name: "Building 58", served: "57, 58" },
+      { name: "Station 309", served: "56, 57, 58, 70" },
+      { name: "Station 310", served: "800, 42, 61, 62" },
+      { name: "Station 314", served: "76, 77, Clinic" },
+    ],
+  },
+];
+
+export const liveBuses = [
+  { id: "B12", route: "Route Two", left: "22%", top: "36%", eta: "3 mins" },
+  { id: "B07", route: "Route Three", left: "57%", top: "47%", eta: "7 mins" },
+  { id: "B21", route: "Route One", left: "72%", top: "28%", eta: "5 mins" },
+];
+
+export const mapStops = [
+  { name: "Parking 900", left: "15%", top: "20%" },
+  { name: "Parking 404", left: "30%", top: "30%" },
+  { name: "Station 312", left: "43%", top: "35%" },
+  { name: "Building 22", left: "58%", top: "44%" },
+  { name: "Station 319", left: "72%", top: "27%" },
+  { name: "Building 58", left: "76%", top: "47%" },
+  { name: "Station 309", left: "60%", top: "58%" },
+  { name: "Station 310", left: "45%", top: "63%" },
+  { name: "Station 314", left: "28%", top: "70%" },
+];
+
+export const sessions = [
+  { device: "MacBook Pro - Chrome", time: "Today, 12:10 PM", status: "Current session" },
+  { device: "iPhone 14 - Safari", time: "Yesterday, 8:42 PM", status: "Trusted device" },
+  { device: "Windows Laptop - Edge", time: "2 days ago, 10:08 AM", status: "Last active" },
+];
