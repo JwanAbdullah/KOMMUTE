@@ -1,26 +1,77 @@
-import React, { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { liveBuses, mapStops, routes, stops } from "../services/mockData";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import { routes } from "../services/mockData";
+
+const busStops = {
+  "Parking 900": [26.302444966152986, 50.14819680562582],
+  "Parking 404": [26.301801857328226, 50.15343689744041],
+  "27": [26.30577658598772, 50.14997505511192],
+  "Station 312": [26.30888286081298, 50.14323318208968],
+  "Building 22": [26.30578534978167, 50.14657250801729],
+  "Station 319": [26.313217445633892, 50.14996101895771],
+  "Building 58": [26.31536295087514, 50.14876797575579],
+  "Station 309": [26.31388614973035, 50.14994185229807],
+  "Station 310": [26.313487765868626, 50.14465303758838],
+  "Station 314": [26.304920814005092, 50.14971838241092],
+};
+
+function FitBounds({ positions }) {
+  const map = useMap();
+  useEffect(() => {
+    if (positions.length >= 2) {
+      map.fitBounds(positions, { padding: [60, 60] });
+    }
+  }, [positions, map]);
+  return null;
+}
 
 export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
   const [currentLocation, setCurrentLocation] = useState("");
   const [destination, setDestination] = useState("");
-  const [selectedRoute, setSelectedRoute] = useState("route-2");
+  const [homeRouteCoords, setHomeRouteCoords] = useState([]);
+  const [homeRouteLoading, setHomeRouteLoading] = useState(false);
+  const [homeRouteError, setHomeRouteError] = useState("");
 
   const matchedRoute = useMemo(() => {
     if (!currentLocation || !destination) return null;
     if (currentLocation === destination) return "same";
-
     const found = routes.find((route) => {
       const stopNames = route.stops.map((stop) => stop.name);
       return stopNames.includes(currentLocation) && stopNames.includes(destination);
     });
-
     return found || "none";
   }, [currentLocation, destination]);
 
-  const visibleRoute = routes.find((route) => route.id === selectedRoute) || routes[0];
+  useEffect(() => {
+    if (!currentLocation || !destination || currentLocation === destination) {
+      setHomeRouteCoords([]);
+      setHomeRouteError("");
+      return;
+    }
+
+    const [oLat, oLng] = busStops[currentLocation];
+    const [dLat, dLng] = busStops[destination];
+
+    setHomeRouteLoading(true);
+    setHomeRouteError("");
+
+    fetch(
+      `https://router.project-osrm.org/route/v1/driving/${oLng},${oLat};${dLng},${dLat}?overview=full&geometries=geojson`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.routes && data.routes.length > 0) {
+          const coords = data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+          setHomeRouteCoords(coords);
+        } else {
+          setHomeRouteError("No route found.");
+        }
+      })
+      .catch(() => setHomeRouteError("Failed to fetch route."))
+      .finally(() => setHomeRouteLoading(false));
+  }, [currentLocation, destination]);
 
   return (
     <div className={darkMode ? "app-shell dark" : "app-shell"}>
@@ -33,7 +84,7 @@ export default function Home() {
 
           <nav className="nav-links">
             <Link className="nav-link" to="/">Home</Link>
-            <a className="nav-link" href="#map">Map</a>
+            <Link className="nav-link" to="/map">Map</Link>
             <a className="nav-link" href="#routes">Schedules</a>
             <Link className="nav-link" to="/about">About</Link>
             <Link className="nav-link" to="/contact">Contact</Link>
@@ -59,9 +110,8 @@ export default function Home() {
                 Kommute gives students and campus users one clean place to view live buses,
                 search routes, check schedules, and report transportation issues.
               </p>
-
               <div className="hero-actions">
-                <a href="#map" className="primary-btn">Open Live Map</a>
+                <Link to="/map" className="primary-btn">Open Live Map</Link>
                 <a href="#routes" className="secondary-btn">Browse Schedules</a>
               </div>
             </div>
@@ -89,144 +139,61 @@ export default function Home() {
 
         <section className="section" id="map">
           <div className="container">
-            <h2 className="section-title">Live map and route finder</h2>
-            <p className="section-subtitle">
-              Choose your current location and destination to get the best route.
-            </p>
+            <h2 className="section-title">Live Campus Map</h2>
+            <p className="section-subtitle">Track buses and explore routes in real time.</p>
 
-            <div className="map-layout">
-              <div className="card panel">
-                <h3 className="panel-title">Plan your ride</h3>
-
-                <div className="field">
-                  <label>Current location</label>
-                  <select
-                    className="select"
-                    value={currentLocation}
-                    onChange={(e) => setCurrentLocation(e.target.value)}
-                  >
-                    <option value="">Select location</option>
-                    {stops.map((stop) => (
-                      <option key={stop} value={stop}>
-                        {stop}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="field">
-                  <label>Destination</label>
-                  <select
-                    className="select"
-                    value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                  >
-                    <option value="">Select destination</option>
-                    {stops.map((stop) => (
-                      <option key={stop} value={stop}>
-                        {stop}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="helper-row">
-                  <span className="chip">Live bus markers</span>
-                  <span className="chip">ETA preview</span>
-                  <span className="chip">Route highlighting</span>
-                </div>
-
-                {matchedRoute && matchedRoute !== "same" && matchedRoute !== "none" && (
-                  <div className="route-result">
-                    <strong>Recommended:</strong> {matchedRoute.name}
-                    <br />
-                    <span>
-                      ETA: {matchedRoute.eta} • Frequency: {matchedRoute.frequency}
-                    </span>
-                  </div>
-                )}
-
-                {matchedRoute === "same" && (
-                  <div className="warning-box">
-                    Current location and destination cannot be the same.
-                  </div>
-                )}
-
-                {matchedRoute === "none" && (
-                  <div className="warning-box">
-                    No direct route available between the selected points.
-                  </div>
-                )}
-
-                <div className="info-box">
-                  If live GPS becomes unavailable, the interface can fall back to scheduled times only.
-                </div>
+            <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label>Current Location</label>
+                <select value={currentLocation} onChange={(e) => setCurrentLocation(e.target.value)} className="select">
+                  <option value="">Select location</option>
+                  {Object.keys(busStops).map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
               </div>
 
-              <div className="card map-card">
-                <div className="map-header">
-                  <h3 className="panel-title">Interactive campus map</h3>
-                  <select
-                    className="select"
-                    style={{ width: 220 }}
-                    value={selectedRoute}
-                    onChange={(e) => setSelectedRoute(e.target.value)}
-                  >
-                    {routes.map((route) => (
-                      <option key={route.id} value={route.id}>
-                        {route.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="map-canvas">
-                  <div className="fake-map">
-                    <div className="map-road road-h" style={{ left: "10%", top: "22%", width: "72%" }} />
-                    <div className="map-road road-h" style={{ left: "16%", top: "60%", width: "56%" }} />
-                    <div className="map-road road-v" style={{ left: "30%", top: "18%", height: "56%" }} />
-                    <div className="map-road road-v" style={{ left: "58%", top: "23%", height: "44%" }} />
-                    <div className={`route-line ${visibleRoute.color}`} style={{ left: "13%", top: "22%", width: "60%", height: 8 }} />
-                    <div className={`route-line ${visibleRoute.color}`} style={{ left: "57%", top: "22%", width: 8, height: "38%" }} />
-                    <div className={`route-line ${visibleRoute.color}`} style={{ left: "30%", top: "58%", width: "28%", height: 8 }} />
-
-                    {mapStops.map((stop) => (
-                      <div
-                        key={stop.name}
-                        className="stop-marker"
-                        style={{ left: stop.left, top: stop.top }}
-                        title={stop.name}
-                      />
-                    ))}
-
-                    {liveBuses.map((bus) => (
-                      <div
-                        key={bus.id}
-                        className="bus-marker"
-                        style={{ left: bus.left, top: bus.top }}
-                        title={`${bus.route} - ${bus.eta}`}
-                      >
-                        {bus.id}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="legend">
-                  <div className="legend-item">
-                    <span className="legend-dot" style={{ background: "#21a366" }} />
-                    Route highlight
-                  </div>
-                  <div className="legend-item">
-                    <span className="legend-dot" style={{ background: "#2f5d4e" }} />
-                    Stop markers
-                  </div>
-                  <div className="legend-item">
-                    <span className="legend-dot" style={{ background: "#111" }} />
-                    Live bus chips
-                  </div>
-                </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label>Destination</label>
+                <select value={destination} onChange={(e) => setDestination(e.target.value)} className="select">
+                  <option value="">Select destination</option>
+                  {Object.keys(busStops).filter((s) => s !== currentLocation).map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
               </div>
+
+              {homeRouteLoading && <p style={{ alignSelf: "flex-end" }}>Fetching route...</p>}
+              {homeRouteError && <p style={{ alignSelf: "flex-end", color: "red" }}>{homeRouteError}</p>}
+            </div>
+
+            <div style={{ height: "500px", width: "100%", borderRadius: "12px", overflow: "hidden" }}>
+              <MapContainer
+                center={[26.308, 50.147]}
+                zoom={14}
+                style={{ height: "100%", width: "100%" }}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution="© OpenStreetMap contributors"
+                />
+                {currentLocation && (
+                  <Marker position={busStops[currentLocation]}>
+                    <Popup>{currentLocation}</Popup>
+                  </Marker>
+                )}
+                {destination && (
+                  <Marker position={busStops[destination]}>
+                    <Popup>{destination}</Popup>
+                  </Marker>
+                )}
+                {homeRouteCoords.length > 0 && (
+                  <>
+                    <Polyline positions={homeRouteCoords} color="blue" weight={4} />
+                    <FitBounds positions={homeRouteCoords} />
+                  </>
+                )}
+              </MapContainer>
             </div>
           </div>
         </section>
@@ -245,7 +212,6 @@ export default function Home() {
                   <div className="route-meta">
                     {route.timing} • {route.frequency}
                   </div>
-
                   <div className="stops-list">
                     {route.stops.slice(0, 5).map((stop) => (
                       <div className="stop-row" key={`${route.id}-${stop.name}`}>
