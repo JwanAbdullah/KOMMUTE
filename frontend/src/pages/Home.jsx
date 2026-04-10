@@ -213,7 +213,7 @@ export default function Home() {
                     {route.timing} • {route.frequency}
                   </div>
                   <div className="stops-list">
-                    {route.stops.slice(0, 5).map((stop) => (
+                    {route.stops.map((stop, index) => (
                       <div className="stop-row" key={`${route.id}-${stop.name}`}>
                         <div className="stop-pin" />
                         <div>
