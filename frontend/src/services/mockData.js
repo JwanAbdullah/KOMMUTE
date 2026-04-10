@@ -19,6 +19,9 @@ export const routes = [
     name: "Route One",
     color: "orange",
     frequency: "Every 10 mins",
+    frequencyMinutes: 10,
+    startTime: "06:30",
+    endTime: "17:30",
     timing: "6:30 AM - 5:30 PM",
     eta: "5 mins",
     stops: [
@@ -33,6 +36,9 @@ export const routes = [
     name: "Route Two",
     color: "green",
     frequency: "Every 10 mins",
+    frequencyMinutes: 10,
+    startTime: "06:30",
+    endTime: "17:30",
     timing: "6:30 AM - 5:30 PM",
     eta: "3 mins",
     stops: [
@@ -55,6 +61,9 @@ export const routes = [
     name: "Route Three",
     color: "blue",
     frequency: "Every 10 mins",
+    frequencyMinutes: 10,
+    startTime: "06:30",
+    endTime: "17:30",
     timing: "6:30 AM - 5:30 PM",
     eta: "7 mins",
     stops: [
@@ -76,6 +85,9 @@ export const routes = [
     name: "Route Four",
     color: "brown",
     frequency: "Every 10 mins",
+    frequencyMinutes: 10,
+    startTime: "06:30",
+    endTime: "17:30",
     timing: "6:30 AM - 5:30 PM",
     eta: "7 mins",
     stops: [
@@ -90,6 +102,9 @@ export const routes = [
     name: "Route Five",
     color: "red",
     frequency: "Every 10 mins",
+    frequencyMinutes: 10,
+    startTime: "06:30",
+    endTime: "17:30",
     timing: "6:30 AM - 5:30 PM",
     eta: "No live GPS",
     stops: [
@@ -108,6 +123,9 @@ export const routes = [
     name: "Route Six",
     color: "light red",
     frequency: "Every 10 mins",
+    frequencyMinutes: 10,
+    startTime: "14:30",
+    endTime: "21:30",
     timing: "2:30 PM - 9:30 PM",
     eta: "No live GPS",
     stops: [
@@ -140,6 +158,12 @@ export const routes = [
     name: "Route Eight",
     color: "grey",
     frequency: "Every 1 hour",
+    trips: [
+      { depart: "08:00", return: "10:00" },
+      { depart: "09:00", return: "12:00" },
+      { depart: "11:00", return: "14:00" },
+      { depart: "13:00", return: "16:00" },
+    ],
     timing: "8:00 AM - 4:00 PM",
     eta: "No live GPS",
     stops: [

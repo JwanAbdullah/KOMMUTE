@@ -9,7 +9,6 @@ import SubmitReport from "./pages/SubmitReport";
 import ReportConfirmation from "./pages/ReportConfirmation";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
-import Map from "./pages/Map";
 
 export default function App() {
   return (
@@ -22,7 +21,6 @@ export default function App() {
         <Route path="/report-confirmation" element={<ReportConfirmation />} />
         <Route path="/login" element={<Login />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/map" element={<Map />} />
       </Routes>
     </BrowserRouter>
   );
