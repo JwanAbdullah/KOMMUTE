@@ -11,6 +11,9 @@ import Profile from "./pages/Profile";
 import RequestBus from "./pages/faculty&club/RequestBus";
 import MyRequests from "./pages/faculty&club/MyRequests";
 import ReportDelay from "./pages/driver/ReportDelay";
+import DriversDashboard from "./pages/admin/DriversDashboard";
+import RequestsDashboard from "./pages/admin/RequestsDashboard";
+import ReportsDashboard from "./pages/admin/ReportsDashboard";
 
 function ScrollToHash() {
   const location = useLocation();
@@ -46,6 +49,9 @@ export default function App() {
         <Route path="/faculty&club/request-bus" element={<RequestBus />} />
         <Route path="/faculty&club/my-requests" element={<MyRequests />} />
         <Route path="/driver/report-delay" element={<ReportDelay />} />
+        <Route path="/admin/drivers-management" element={<DriversDashboard />} />
+        <Route path="/admin/requests-dashboard" element={<RequestsDashboard />} />
+        <Route path="/admin/reports-dashboard" element={<ReportsDashboard />} />
       </Routes>
     </BrowserRouter>
   );
