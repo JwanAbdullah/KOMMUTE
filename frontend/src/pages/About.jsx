@@ -19,7 +19,7 @@ export default function About() {
     },
     {
       name: "Lamar Alshehri",
-      role: "UI / Backend",
+      role: "Backend",
       details: "Software Engineering Student at KFUPM",
     },
   ];

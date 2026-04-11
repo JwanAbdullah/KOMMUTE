@@ -18,21 +18,6 @@ export default function Login() {
 
     localStorage.setItem("kommuteUser", JSON.stringify(userData));
 
-    if (role === "faculty") {
-      navigate("/faculty/request-bus");
-      return;
-    }
-
-    if (role === "driver") {
-      navigate("/driver/report-delay");
-      return;
-    }
-
-    if (role === "admin") {
-      navigate("/admin/reports-dashboard");
-      return;
-    }
-
     navigate("/");
   };
 
