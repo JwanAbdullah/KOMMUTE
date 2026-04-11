@@ -32,17 +32,19 @@ export default function Header({ darkMode, setDarkMode }) {
           <Link className="nav-link" to="/">Home</Link>
           <Link className="nav-link" to="/#map">Map</Link>
           <Link className="nav-link" to="/#routes">Schedules</Link>
-          <Link className="nav-link" to="/about">About</Link>
-          <Link className="nav-link" to="/contact">Contact us</Link>
 
           {!isLoggedIn && (
             <>
+              <Link className="nav-link" to="/about">About</Link>
+              <Link className="nav-link" to="/contact">Contact us</Link>
               <Link className="nav-link" to="/submit-report">Report a delay</Link>
             </>
           )}
 
           {isLoggedIn && userRole === "user" && (
             <>
+              <Link className="nav-link" to="/about">About</Link>
+              <Link className="nav-link" to="/contact">Contact us</Link>
               <Link className="nav-link" to="/submit-report">Report a delay</Link>
             </>
           )}
@@ -63,6 +65,8 @@ export default function Header({ darkMode, setDarkMode }) {
 
           {isLoggedIn && userRole === "faculty" && (
             <>
+              <Link className="nav-link" to="/about">About</Link>
+              <Link className="nav-link" to="/contact">Contact us</Link>
               <Link className="nav-link" to="/faculty&club/request-bus">
                 Request Bus
               </Link>
@@ -75,7 +79,7 @@ export default function Header({ darkMode, setDarkMode }) {
           {isLoggedIn && userRole === "driver" && (
             <>
               <Link className="nav-link" to="/driver/report-delay">
-                Report Delay
+                Report a Delay
               </Link>
             </>
           )}
