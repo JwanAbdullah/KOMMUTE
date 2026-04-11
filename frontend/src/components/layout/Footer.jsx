@@ -5,7 +5,6 @@ export default function Footer() {
     <footer className="footer">
       <div className="container footer-inner">
         <div className="brand">
-          <div className="brand-badge">K</div>
           <span>Kommute</span>
         </div>
 

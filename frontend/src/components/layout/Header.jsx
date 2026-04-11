@@ -1,37 +1,49 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-export default function Header({
-  darkMode,
-  setDarkMode,
-  isLoggedIn = false,
-  userRole = "guest", // guest | user | admin | faculty | driver
-}) {
+export default function Header({ darkMode, setDarkMode }) {
+  const [user, setUser] = useState({ isLoggedIn: false, role: "guest" });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("kommuteUser");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("kommuteUser");
+    setUser({ isLoggedIn: false, role: "guest" });
+    navigate("/");
+  };
+
+  const isLoggedIn = user.isLoggedIn;
+  const userRole = user.role;
+
   return (
     <header className="navbar">
       <div className="container navbar-inner">
         <Link to="/" className="brand">
-          <div className="brand-badge">K</div>
           <span>Kommute</span>
         </Link>
 
         <nav className="nav-links">
           <Link className="nav-link" to="/">Home</Link>
-          <a className="nav-link" href="#map">Map</a>
-          <a className="nav-link" href="#routes">Schedules</a>
+          <Link className="nav-link" to="/#map">Map</Link>
+          <Link className="nav-link" to="/#routes">Schedules</Link>
           <Link className="nav-link" to="/about">About</Link>
-          <Link className="nav-link" to="/contact">Contact</Link>
-          <Link className="nav-link" to="/submit-report">Submit Report</Link>
+          <Link className="nav-link" to="/contact">Contact us</Link>
 
           {!isLoggedIn && (
             <>
-              {/* Guest / normal public navigation only */}
+              <Link className="nav-link" to="/submit-report">Report a delay</Link>
             </>
           )}
 
           {isLoggedIn && userRole === "user" && (
             <>
-              {/* Normal logged-in user pages can go here later if needed */}
+              <Link className="nav-link" to="/submit-report">Report a delay</Link>
             </>
           )}
 
@@ -51,10 +63,12 @@ export default function Header({
 
           {isLoggedIn && userRole === "faculty" && (
             <>
-              <Link className="nav-link" to="/faculty/request-bus">
+              <Link className="nav-link" to="/faculty&club/request-bus">
                 Request Bus
               </Link>
-              {/* Add event/exam request details page here later */}
+              <Link className="nav-link" to="/faculty&club/my-requests">
+                My Requests
+              </Link>
             </>
           )}
 
@@ -63,7 +77,6 @@ export default function Header({
               <Link className="nav-link" to="/driver/report-delay">
                 Report Delay
               </Link>
-              {/* Add driver assigned route / trip page here later */}
             </>
           )}
         </nav>
@@ -81,14 +94,20 @@ export default function Header({
           {!isLoggedIn ? (
             <Link className="secondary-btn" to="/login">Login</Link>
           ) : (
-            <Link
-              className="profile-icon-link"
-              to="/profile"
-              aria-label="Go to profile"
-              title="Profile"
-            >
-              <div className="profile-icon">👤</div>
-            </Link>
+            <>
+              <Link
+                className="profile-icon-link"
+                to="/profile"
+                aria-label="Go to profile"
+                title="Profile"
+              >
+                <div className="profile-icon">👤</div>
+              </Link>
+
+              <button className="secondary-btn" onClick={handleLogout}>
+                Logout
+              </button>
+            </>
           )}
         </div>
       </div>

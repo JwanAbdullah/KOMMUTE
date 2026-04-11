@@ -181,6 +181,97 @@ export default function Home() {
     return getRouteWaitInfo(matchedRoute, now);
   }, [matchedRoute, now]);
 
+
+
+  const activeRoutesCount = useMemo(() => {
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  return routes.filter((route) => {
+    if (route.scheduleType === "fixed" && route.trips?.length) {
+      return route.trips.some((trip) => {
+        const depart = parseTimeToMinutes(trip.depart);
+        const ret = parseTimeToMinutes(trip.return);
+        return currentMinutes >= depart && currentMinutes <= ret;
+      });
+    }
+
+    if (route.scheduleType === "interval" && route.startTime && route.endTime) {
+      const start = parseTimeToMinutes(route.startTime);
+      const end = parseTimeToMinutes(route.endTime);
+      return currentMinutes >= start && currentMinutes <= end;
+    }
+
+    if (route.timing) {
+      const match = route.timing.match(/(\d{1,2}:\d{2})\s*(AM|PM)\s*-\s*(\d{1,2}:\d{2})\s*(AM|PM)/i);
+
+      if (!match) return false;
+
+      const [, startTime, startPeriod, endTime, endPeriod] = match;
+
+      const to24h = (time, period) => {
+        let [h, m] = time.split(":").map(Number);
+        const upper = period.toUpperCase();
+
+        if (upper === "PM" && h !== 12) h += 12;
+        if (upper === "AM" && h === 12) h = 0;
+
+        return h * 60 + m;
+      };
+
+      const start = to24h(startTime, startPeriod);
+      const end = to24h(endTime, endPeriod);
+
+      return currentMinutes >= start && currentMinutes <= end;
+    }
+
+    return false;
+  }).length;
+}, [now]);
+
+  const busesInOperation = useMemo(() => {
+    if (activeRoutesCount === 0) return 0;
+    return 20; //assumption of 20 buses total in operation across all active routes 
+  }, [activeRoutesCount]);
+
+  const averageWaitDisplay = useMemo(() => {
+  const waits = routes
+    .map((route) => {
+      if (route.frequency) {
+        const match = route.frequency.match(/(\d+)/);
+        if (match) {
+          const frequencyMinutes = Number(match[1]);
+          return Math.round(frequencyMinutes / 2);
+        }
+      }
+
+      if (route.scheduleType === "fixed" || route.trips?.length) {
+        const info = getRouteWaitInfo(route, now);
+        if (info && typeof info.waitMinutes === "number") {
+          return info.waitMinutes;
+        }
+      }
+
+      return null;
+    })
+    .filter((wait) => wait !== null && wait <= 20);
+
+  if (!waits.length) return "6 min";
+
+  const avg = Math.round(
+    waits.reduce((sum, value) => sum + value, 0) / waits.length
+  );
+
+  return `${avg} min`;
+}, [now]);
+
+  const nextDepartureDisplay = useMemo(() => {
+    const times = routes
+      .map((r) => getRouteWaitInfo(r, now))
+      .filter((i) => i && i.nextArrival)
+      .map((i) => i.nextArrival);
+
+    return times.length ? times[0] : "--";
+  }, [now]);
   useEffect(() => {
     if (!currentLocation || !destination || currentLocation === destination) {
       setHomeRouteCoords([]);
@@ -240,12 +331,14 @@ export default function Home() {
           <div className="container hero-grid">
             <div className="card hero-card">
               <span className="hero-kicker">Campus transportation, made simple</span>
+
               <h1>Track buses, find routes, and move smarter.</h1>
+
               <p>
                 Kommute gives students and campus users one clean place to view live
-                buses, search routes, check schedules, and report transportation
-                issues.
+                buses, search routes, check schedules, and report transportation issues.
               </p>
+
               <div className="hero-actions">
                 <a href="#map" className="primary-btn">Open Live Map</a>
                 <a href="#routes" className="secondary-btn">Browse Schedules</a>
@@ -254,20 +347,26 @@ export default function Home() {
 
             <div className="stats-grid">
               <div className="card stat-box">
-                <div className="stat-label">Active routes</div>
-                <div className="stat-value">8</div>
+                <div className="stat-label stat-label-live">
+                  <span>Active routes</span>
+                  <span className="live-dot" />
+                </div>
+                <div className="stat-value">{activeRoutesCount}</div>
               </div>
+
               <div className="card stat-box">
-                <div className="stat-label">Live buses now</div>
-                <div className="stat-value">3</div>
+                <div className="stat-label">Buses in operation</div>
+                <div className="stat-value">{busesInOperation}</div>
               </div>
+
               <div className="card stat-box">
                 <div className="stat-label">Average wait time</div>
-                <div className="stat-value">6 min</div>
+                <div className="stat-value">{averageWaitDisplay}</div>
               </div>
+
               <div className="card stat-box">
-                <div className="stat-label">Service status</div>
-                <div className="stat-value">Smooth</div>
+                <div className="stat-label">Approximate next departure</div>
+                <div className="stat-value">{nextDepartureDisplay}</div>
               </div>
             </div>
           </div>
