@@ -23,79 +23,88 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
     return JSON.parse(localStorage.getItem("kommuteUser"));
   };
 
-  const getReportId = (report) => report._id || report.id;
+  const getReportId = (report) => report._id || report.id || "No ID";
 
   const getSubmittedByLabel = (report) => {
-    if (report.submittedByUser?.role) return report.submittedByUser.role;
-    return report.submittedBy || "Unknown";
+    return report.submittedByUser?.role || report.submittedBy || "Unknown";
   };
 
   const getSubmittedName = (report) => {
-    if (report.submittedByUser?.name) return report.submittedByUser.name;
-    return report.fullName || "Unknown";
+    return report.submittedByUser?.name || report.fullName || "Unknown";
   };
 
   const getSubmittedEmail = (report) => {
-    if (report.submittedByUser?.email) return report.submittedByUser.email;
-    return report.email || "No email";
+    return report.submittedByUser?.email || report.email || "No email";
   };
 
   const getReportDate = (report) => {
-    if (report.createdAt) {
-      return new Date(report.createdAt).toLocaleDateString();
-    }
-
-    return report.date || "No date";
+    return report.createdAt
+      ? new Date(report.createdAt).toLocaleDateString()
+      : report.date || "No date";
   };
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      const storedUser = getStoredUser();
+  const fetchReports = async () => {
+    const storedUser = getStoredUser();
 
-      if (!storedUser?.token) {
-        setError("You must be logged in as an admin to view reports.");
-        setLoading(false);
+    if (!storedUser?.token) {
+      setError("You must be logged in as an admin to view reports.");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch(`${API_URL}/reports`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${storedUser.token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || data.error || "Failed to fetch reports.");
+        setReports([]);
         return;
       }
 
-      try {
-        const res = await fetch(`${API_URL}/reports`, {
-          headers: {
-            Authorization: `Bearer ${storedUser.token}`,
-          },
-        });
+      const backendReports = Array.isArray(data)
+        ? data
+        : Array.isArray(data.reports)
+        ? data.reports
+        : [];
 
-        const data = await res.json();
+      setReports(backendReports);
+    } catch (err) {
+      setError("Could not connect to the backend.");
+      setReports([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (!res.ok) {
-          setError(data.message || "Failed to fetch reports.");
-          setReports([]);
-          return;
-        }
-
-        setReports(Array.isArray(data) ? data : data.reports || []);
-      } catch (err) {
-        setError("Could not connect to the backend.");
-        setReports([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  useEffect(() => {
     fetchReports();
   }, []);
 
   const filteredReports = useMemo(() => {
     return reports.filter((report) => {
-      const reportId = getReportId(report) || "";
+      const reportId = String(getReportId(report)).toLowerCase();
       const submittedByLabel = getSubmittedByLabel(report);
 
+      const searchValue = search.toLowerCase();
+
       const matchesSearch =
-        reportId.toLowerCase().includes(search.toLowerCase()) ||
-        (report.title || "").toLowerCase().includes(search.toLowerCase()) ||
-        (report.category || "").toLowerCase().includes(search.toLowerCase()) ||
-        (report.stop || "").toLowerCase().includes(search.toLowerCase()) ||
-        (report.route || "").toLowerCase().includes(search.toLowerCase());
+        reportId.includes(searchValue) ||
+        (report.title || "").toLowerCase().includes(searchValue) ||
+        (report.category || "").toLowerCase().includes(searchValue) ||
+        (report.reportType || "").toLowerCase().includes(searchValue) ||
+        (report.stop || "").toLowerCase().includes(searchValue) ||
+        (report.route || "").toLowerCase().includes(searchValue) ||
+        (report.description || "").toLowerCase().includes(searchValue);
 
       const matchesStatus =
         statusFilter === "All" ? true : report.status === statusFilter;
@@ -146,7 +155,7 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
       const updatedReport = await res.json();
 
       if (!res.ok) {
-        alert(updatedReport.message || "Failed to update status.");
+        alert(updatedReport.message || updatedReport.error || "Failed to update status.");
         return;
       }
 
@@ -178,9 +187,7 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
           <div className="container">
             <div className="page-header">
               <h1>Reports Dashboard</h1>
-              <p>
-                Review transportation complaints, delays, and service-related reports.
-              </p>
+              <p>Review all reports submitted through the backend.</p>
             </div>
 
             <div className="card form-card" style={{ marginBottom: 20 }}>
@@ -190,7 +197,7 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
                   <input
                     className="input"
                     type="text"
-                    placeholder="Search by ID, title, category, stop, or route"
+                    placeholder="Search by ID, title, category, stop, route, or description"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
@@ -227,7 +234,7 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
               </div>
             </div>
 
-            {loading && <div className="info-box">Loading reports...</div>}
+            {loading && <div className="info-box">Loading reports from backend...</div>}
 
             {error && <div className="warning-box">{error}</div>}
 
@@ -241,9 +248,7 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
                     return (
                       <div
                         className={`card route-card ${
-                          submittedByLabel === "driver"
-                            ? "driver-report-card"
-                            : ""
+                          submittedByLabel === "driver" ? "driver-report-card" : ""
                         }`}
                         key={reportId}
                       >
@@ -258,9 +263,9 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
                           }}
                         >
                           <div>
-                            <h3>{report.title}</h3>
+                            <h3>{report.title || "Untitled Report"}</h3>
                             <div className="route-meta">
-                              {reportId} • {report.category}
+                              {reportId} • {report.category || report.reportType || "No category"}
                             </div>
 
                             {submittedByLabel === "driver" && (
@@ -271,7 +276,7 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
                           </div>
 
                           <span className={getStatusClassName(report.status)}>
-                            {report.status}
+                            {report.status || "Open"}
                           </span>
                         </div>
 
@@ -281,7 +286,7 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
                           </div>
 
                           <div className="list-item">
-                            <strong>Location:</strong> {report.stop}
+                            <strong>Location:</strong> {report.stop || "No stop"}
                           </div>
 
                           <div className="list-item">
@@ -318,7 +323,7 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
 
                 {filteredReports.length === 0 && (
                   <div className="info-box" style={{ marginTop: 18 }}>
-                    No reports match the current filters.
+                    No reports found from the backend.
                   </div>
                 )}
               </>
@@ -369,20 +374,20 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
               </div>
 
               <div className="list-item">
-                <strong>Submitted by:</strong>{" "}
-                {getSubmittedByLabel(selectedReport)}
+                <strong>Submitted by:</strong> {getSubmittedByLabel(selectedReport)}
               </div>
 
               <div className="list-item">
-                <strong>Report type:</strong> {selectedReport.reportType}
+                <strong>Report type:</strong>{" "}
+                {selectedReport.reportType || selectedReport.category || "No type"}
               </div>
 
               <div className="list-item">
-                <strong>Route:</strong> {selectedReport.route}
+                <strong>Route:</strong> {selectedReport.route || "No route"}
               </div>
 
               <div className="list-item">
-                <strong>Stop / Station:</strong> {selectedReport.stop}
+                <strong>Stop / Station:</strong> {selectedReport.stop || "No stop"}
               </div>
 
               <div className="list-item">
@@ -390,7 +395,7 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
               </div>
 
               <div className="list-item">
-                <strong>Status:</strong> {selectedReport.status}
+                <strong>Status:</strong> {selectedReport.status || "Open"}
               </div>
 
               <div className="list-item">
@@ -399,7 +404,8 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
               </div>
 
               <div className="list-item">
-                <strong>Description:</strong> {selectedReport.description}
+                <strong>Description:</strong>{" "}
+                {selectedReport.description || "No description"}
               </div>
             </div>
           </div>
@@ -440,7 +446,7 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
                 <input
                   className="input"
                   value={`${getReportId(selectedReport)} - ${
-                    selectedReport.title
+                    selectedReport.title || "Untitled Report"
                   }`}
                   readOnly
                 />

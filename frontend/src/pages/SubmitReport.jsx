@@ -105,16 +105,28 @@ export default function SubmitReport({ darkMode, setDarkMode }) {
       />
 
       <div className="container">
+        
         <div className="page-header">
           <h1>Submit a Service Report</h1>
           <p>Report delays, safety issues, or other transportation problems.</p>
+           {!isLoggedIn && (
+              <div className="success-box">
+                You need to{" "}
+                <Link to="/login" style={{ fontWeight: 800 }}>
+                  login
+                </Link>{" "}
+                before submitting a report.
+              </div>
+            )}
         </div>
 
         <div className="card form-card">
 
 
           <form onSubmit={handleSubmit}>
+            
             <div className="form-grid">
+              
               <div className="field">
                 <label>Full name</label>
                 <input
@@ -218,15 +230,7 @@ export default function SubmitReport({ darkMode, setDarkMode }) {
 
             {error && <div className="warning-box">{error}</div>}
 
-            {!isLoggedIn && (
-              <div className="info-box">
-                You need to{" "}
-                <Link to="/login" style={{ fontWeight: 800 }}>
-                  login
-                </Link>{" "}
-                before submitting a report.
-              </div>
-            )}
+      
 
             <button className="primary-btn" type="submit" disabled={loading}>
               {loading ? "Submitting..." : "Submit Report"}
@@ -235,6 +239,9 @@ export default function SubmitReport({ darkMode, setDarkMode }) {
             <div className="success-box">
               Thank you for reaching out. Your enquiry has been submitted successfully.
             </div>
+
+           
+
           )}
           </form>
         </div>

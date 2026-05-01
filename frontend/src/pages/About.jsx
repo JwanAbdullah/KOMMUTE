@@ -13,12 +13,10 @@ export default function About({ darkMode, setDarkMode }) {
   const teamMembers = [
     {
       name: "Jwan Alghamdi",
-      role: "UI / Frontend",
       details: "Software Engineering Student at KFUPM",
     },
     {
       name: "Lamar Alshehri",
-      role: "Backend",
       details: "Software Engineering Student at KFUPM",
     },
   ];

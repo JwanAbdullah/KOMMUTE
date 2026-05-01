@@ -59,6 +59,9 @@ export default function Header({ darkMode, setDarkMode }) {
               <Link className="nav-link" to="/admin/requests-dashboard">
                 Requests Dashboard
               </Link>
+              <Link className="nav-link" to="/admin/users-management">
+                Users Management
+              </Link>
               <Link className="nav-link" to="/admin/drivers-management">
                 Drivers Management
               </Link>

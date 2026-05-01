@@ -1,45 +1,53 @@
-import API_BASE from './api'
+const API_URL = "http://localhost:5000/api";
 
-function getAuthHeader() {
-  const token = localStorage.getItem('token')
-  return token ? { Authorization: `Bearer ${token}` } : {}
+function getToken() {
+  const storedUser = JSON.parse(localStorage.getItem("kommuteUser"));
+  return storedUser?.token;
 }
 
-export async function createRequest(data) {
-  const res = await fetch(`${API_BASE}/requests`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-    body: JSON.stringify(data),
-  })
-  if (!res.ok) {
-    const err = await res.json()
-    throw new Error(err.error || 'Failed to submit request')
+export async function createRequest(requestData) {
+  const token = getToken();
+
+  if (!token) {
+    throw new Error("You must be logged in to submit a request.");
   }
-  return res.json()
-}
 
-export async function getRequests() {
-  const res = await fetch(`${API_BASE}/requests`, {
-    headers: getAuthHeader(),
-  })
-  if (!res.ok) throw new Error('Failed to fetch requests')
-  return res.json()
+  const res = await fetch(`${API_URL}/requests`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(requestData),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || data.message || "Failed to submit request");
+  }
+
+  return data;
 }
 
 export async function getMyRequests() {
-  const res = await fetch(`${API_BASE}/requests/mine`, {
-    headers: getAuthHeader(),
-  })
-  if (!res.ok) throw new Error('Failed to fetch your requests')
-  return res.json()
-}
+  const token = getToken();
 
-export async function updateRequestStatus(id, status) {
-  const res = await fetch(`${API_BASE}/requests/${id}/status`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-    body: JSON.stringify({ status }),
-  })
-  if (!res.ok) throw new Error('Failed to update request status')
-  return res.json()
+  if (!token) {
+    throw new Error("You must be logged in to view your requests.");
+  }
+
+  const res = await fetch(`${API_URL}/requests/mine`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || data.message || "Failed to fetch your requests");
+  }
+
+  return data;
 }
