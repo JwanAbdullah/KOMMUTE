@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 
-export default function RequestBus() {
-  const [darkMode, setDarkMode] = useState(false);
+export default function RequestBus({ darkMode, setDarkMode }) {
+
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e) => {
@@ -19,6 +19,7 @@ export default function RequestBus() {
         <section className="section">
           <div className="container">
             <div className="page-header">
+              
               <h1>Request Bus</h1>
               <p>
                 Submit a transportation request for an event, exam, or club activity.

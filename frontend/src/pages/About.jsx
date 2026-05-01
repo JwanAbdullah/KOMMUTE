@@ -5,11 +5,10 @@ import buses from "../assets/images/buses.jpg";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 
-export default function About() {
-  const [darkMode, setDarkMode] = useState(false);
-
+export default function About({ darkMode, setDarkMode }) {
   const [isLoggedIn] = useState(false);
   const [userRole] = useState("guest");
+  const [activeHighlight, setActiveHighlight] = useState(0);
 
   const teamMembers = [
     {
@@ -26,16 +25,25 @@ export default function About() {
 
   const highlights = [
     {
+      icon: "🗺️",
       title: "Clear routes",
       text: "Understand bus lines, stops, and timing without confusion.",
+      detail:
+        "Kommute organizes route names, stop lists, timings, and served buildings in one place so users do not have to guess which bus to take.",
     },
     {
+      icon: "⏱️",
       title: "Faster planning",
       text: "Find the best route quickly and reduce unnecessary waiting.",
+      detail:
+        "Users can compare routes, check current estimates, and choose the trip that gets them across campus with less waiting.",
     },
     {
+      icon: "📢",
       title: "Better communication",
       text: "Make transportation updates and support more accessible.",
+      detail:
+        "Reports, delay notices, and transportation requests help students, drivers, faculty, and admins stay connected.",
     },
   ];
 
@@ -49,10 +57,10 @@ export default function About() {
       />
 
       <main>
-        <section className="section">
+        <section className="section about-section">
           <div className="container">
             <div className="page-header about-page-header">
-              <Link to="/" className="secondary-btn">← Back Home</Link>
+              
               <h1>About Kommute</h1>
               <p>
                 Kommute is a campus transportation platform designed to centralize public bus
@@ -62,16 +70,34 @@ export default function About() {
             </div>
 
             <div className="about-highlight-grid">
-              {highlights.map((item) => (
-                <div className="card about-highlight-card" key={item.title}>
+              {highlights.map((item, index) => (
+                <button
+                  className={
+                    activeHighlight === index
+                      ? "card about-highlight-card active"
+                      : "card about-highlight-card"
+                  }
+                  key={item.title}
+                  type="button"
+                  onClick={() => setActiveHighlight(index)}
+                >
+                  <div className="about-highlight-icon">{item.icon}</div>
                   <h3>{item.title}</h3>
                   <p>{item.text}</p>
-                </div>
+                </button>
               ))}
             </div>
 
-            <div className="about-section-card card">
-              <div className="about-section-grid">
+            <div className="card about-feature-detail">
+              <div>
+                <span className="about-section-kicker">Selected focus</span>
+                <h2>{highlights[activeHighlight].title}</h2>
+                <p>{highlights[activeHighlight].detail}</p>
+              </div>
+            </div>
+
+            <div className="about-story-layout">
+              <div className="about-section-card card">
                 <div className="about-copy">
                   <span className="about-section-kicker">Our Story</span>
                   <h2>Built from a real campus problem</h2>
@@ -90,10 +116,8 @@ export default function About() {
                   <img src={buses} alt="Campus buses" className="about-image" />
                 </div>
               </div>
-            </div>
 
-            <div className="about-section-card card">
-              <div className="about-section-grid reverse">
+              <div className="about-section-card card">
                 <div className="about-media">
                   <img src={kfupmImage} alt="KFUPM campus" className="about-image" />
                 </div>

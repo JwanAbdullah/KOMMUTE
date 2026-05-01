@@ -4,8 +4,7 @@ import { stops } from "../services/mockData";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 
-export default function SubmitReport() {
-  const [darkMode, setDarkMode] = useState(false);
+export default function SubmitReport({ darkMode, setDarkMode }) {
   
     const [isLoggedIn] = useState(false);
     const [userRole] = useState("guest");
@@ -40,7 +39,7 @@ export default function SubmitReport() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={darkMode ? "app-shell dark" : "app-shell"}>
       <Header
               darkMode={darkMode}
               setDarkMode={setDarkMode}
@@ -48,8 +47,7 @@ export default function SubmitReport() {
               userRole={userRole}
             />
       <div className="container">
-        <div className="page-header">
-          <Link to="/" className="secondary-btn">← Back Home</Link>
+        <div className="page-header">  
           <h1>Submit a Service Report</h1>
           <p>
             Report delays, safety issues, or other transportation problems. Frontend-only for now.

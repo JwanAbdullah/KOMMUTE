@@ -3,9 +3,7 @@ import { Link } from "react-router-dom";
 import Header from "../components/layout/Header"; 
 import Footer from "../components/layout/Footer";
 
-export default function Contact() {
-
-  const [darkMode, setDarkMode] = useState(false);
+export default function Contact({ darkMode, setDarkMode }) {
   
     const [isLoggedIn] = useState(false);
     const [userRole] = useState("guest");
@@ -29,7 +27,7 @@ export default function Contact() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={darkMode ? "app-shell dark" : "app-shell"}>
       <Header
               darkMode={darkMode}
               setDarkMode={setDarkMode}
@@ -38,7 +36,7 @@ export default function Contact() {
             />
       <div className="container">
         <div className="page-header">
-          <Link to="/" className="secondary-btn">← Back Home</Link>
+          
           <h1>Contact Us</h1>
           <p>
             Send a general enquiry, schedule question, lost and found message, accessibility request, or suggestion.

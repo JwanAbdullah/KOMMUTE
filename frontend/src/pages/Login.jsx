@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function Login({ darkMode }) {
   const [role, setRole] = useState("user");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +22,7 @@ export default function Login() {
   };
 
   return (
-    <div className="login-wrap">
+    <div className={darkMode ? "login-wrap dark" : "login-wrap"}>
       <div className="card login-card">
         <div className="brand" style={{ marginBottom: 18 }}>
           <span>Kommute</span>

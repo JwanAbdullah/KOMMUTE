@@ -72,7 +72,9 @@ export default function Profile() {
       <main>
         <div className="container">
           <div className="page-header">
-            <Link to="/" className="secondary-btn">← Back Home</Link>
+            <div className="back-btn-wrap">
+              <Link to="/" className="secondary-btn">← Back Home</Link>
+            </div>
             <h1>Profile & Security</h1>
             <p>
               Personal info, profile photo, password update, session history, and logout UI.

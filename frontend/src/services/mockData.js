@@ -27,8 +27,7 @@ export const routes = [
     stops: [
       { name: "Parking 900", served: "900, 1000, Square" },
       { name: "Parking 404", served: "404, 406, 407" },
-      { name: "27", served: "27, 28, Clinic" },
-      { name: "Parking 900", served: "900, 1000, Square" },
+      { name: "Building 27", served: "27, 28, Clinic" },
     ],
   },
   {
@@ -91,7 +90,7 @@ export const routes = [
     timing: "6:30 AM - 5:30 PM",
     eta: "7 mins",
     stops: [
-      { name: "Station 310 ( البداية )", served: "800, 42, 61, 62" },
+      { name: "Station 310 ", served: "800, 42, 61, 62" },
       { name: "Building 58 ( التحضيري )", served: "57, 58" },
       { name: "Station 309", served: "56, 57, 58, 70" },
       { name: "Station 310", served: "800, 42, 61, 62" },
@@ -109,7 +108,7 @@ export const routes = [
     eta: "No live GPS",
     stops: [
       { name: "Station 319", served: "700" },
-      { name: "Building 58", served: "57, 58" },
+      { name: "Building 58 ( التحضيري )", served: "57, 58" },
       { name: "Station 309", served: "56, 57, 58, 70" },
       { name: "Station 310", served: "800, 42, 61, 62" },
       { name: "Station 314", served: "76, 77, Clinic" },
@@ -139,25 +138,32 @@ export const routes = [
 
     ],
   },
-  {
-    id: "route-7",
-    name: "Route Seven",
-    color: "yellow",
-    frequency: "According to courses schedule",
-    timing: "8:00 AM - 4:00 PM",
-    eta: "No live GPS",
-    stops: [
-      { name: "Station 316", served: "55, 63, 75" },
-      { name: "Station 319", served: "700" },
-      { name: "Station 310", served: "800, 42, 61, 62" },
-      { name: "Dhahran Techno Valley", served: "DTV" },
-    ],
-  },
+ {
+  id: "route-7",
+  name: "Route Seven",
+  color: "yellow",
+  frequency: "Every 30 mins",
+  frequencyMinutes: 30,
+  startTime: "08:00",
+  endTime: "16:00",
+  timing: "8:00 AM - 4:00 PM",
+  eta: "No live GPS",
+  stops: [
+    { name: "Station 316", served: "55, 63, 75" },
+    { name: "Station 319", served: "700" },
+    { name: "Station 310", served: "800, 42, 61, 62" },
+    { name: "Dhahran Techno Valley", served: "DTV" },
+  ],
+},
   {
     id: "route-8",
     name: "Route Eight",
     color: "grey",
     frequency: "Every 1 hour",
+    frequencyMinutes: 60,
+    startTime: "8:00",
+    endTime: "16:00",
+
     trips: [
       { depart: "08:00", return: "10:00" },
       { depart: "09:00", return: "12:00" },
@@ -168,8 +174,7 @@ export const routes = [
     eta: "No live GPS",
     stops: [
       { name: "Station 316", served: "55, 63, 75" },
-      { name: "B.424", served: "404, 406, 407" },
-      { name: "Station 316", served: "55, 63, 75" },
+      { name: "Building 424", served: "404, 406, 407" },
     ],
   },
 ];
@@ -186,7 +191,7 @@ export const mapStops = [
   { name: "Station 312", left: "43%", top: "35%" },
   { name: "Building 22", left: "58%", top: "44%" },
   { name: "Station 319", left: "72%", top: "27%" },
-  { name: "Building 58", left: "76%", top: "47%" },
+  { name: "Building 58 ( التحضيري )", left: "76%", top: "47%" },
   { name: "Station 309", left: "60%", top: "58%" },
   { name: "Station 310", left: "45%", top: "63%" },
   { name: "Station 314", left: "28%", top: "70%" },

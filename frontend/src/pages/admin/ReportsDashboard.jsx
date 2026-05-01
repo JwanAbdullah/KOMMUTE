@@ -96,8 +96,8 @@ const initialReports = [
   },
 ];
 
-export default function ReportsDashboard() {
-  const [darkMode, setDarkMode] = useState(false);
+export default function ReportsDashboard({ darkMode, setDarkMode }) {
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [userFilter, setUserFilter] = useState("All");

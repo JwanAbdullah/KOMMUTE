@@ -33,8 +33,8 @@ export default function Header({ darkMode, setDarkMode }) {
 
           {!isLoggedIn && (
             <>
-            <Link className="nav-link" to="/#map">Map</Link>
             <Link className="nav-link" to="/#routes">Schedules</Link>
+            <Link className="nav-link" to="/#map">Map</Link>
               <Link className="nav-link" to="/about">About</Link>
               <Link className="nav-link" to="/contact">Contact us</Link>
               <Link className="nav-link" to="/submit-report">Report a delay</Link>
@@ -43,8 +43,8 @@ export default function Header({ darkMode, setDarkMode }) {
 
           {isLoggedIn && userRole === "user" && (
             <>
-              <Link className="nav-link" to="/#map">Map</Link>
               <Link className="nav-link" to="/#routes">Schedules</Link>
+              <Link className="nav-link" to="/#map">Map</Link>
               <Link className="nav-link" to="/about">About</Link>
               <Link className="nav-link" to="/contact">Contact us</Link>
               <Link className="nav-link" to="/submit-report">Report a delay</Link>
@@ -67,8 +67,8 @@ export default function Header({ darkMode, setDarkMode }) {
 
           {isLoggedIn && userRole === "faculty" && (
             <>
+            <Link className="nav-link" to="/#routes">Schedules</Link>
               <Link className="nav-link" to="/#map">Map</Link>
-              <Link className="nav-link" to="/#routes">Schedules</Link>
               <Link className="nav-link" to="/about">About</Link>
               <Link className="nav-link" to="/contact">Contact us</Link>
               <Link className="nav-link" to="/faculty&club/request-bus">

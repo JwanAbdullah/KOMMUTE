@@ -16,8 +16,8 @@ const driverStops = [
   "Station 314",
 ];
 
-export default function ReportDelay() {
-  const [darkMode, setDarkMode] = useState(false);
+export default function ReportDelay({ darkMode, setDarkMode }) {
+
 
   const [routeName, setRouteName] = useState("Route 2");
   const [stopName, setStopName] = useState("");
@@ -44,7 +44,7 @@ export default function ReportDelay() {
         <section className="section">
           <div className="container">
             <div className="page-header">
-              <Link to="/" className="secondary-btn">← Back Home</Link>
+            
               <h1>Report Delay</h1>
               <p>
                 Let riders know when a bus will arrive late, which stop is affected,

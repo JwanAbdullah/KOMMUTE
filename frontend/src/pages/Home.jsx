@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import RoutePreview from "./RoutePreview";
 import { Link } from "react-router-dom";
 import {
   MapContainer,
@@ -131,18 +132,10 @@ function getRouteWaitInfo(route, now) {
   return getIntervalRouteWaitInfo(route, now);
 }
 
-export default function Home() {
-  const [darkMode, setDarkMode] = useState(false);
+export default function Home({ darkMode, setDarkMode }) {
 
-  // Temporary frontend-only auth state for testing header behavior
   const [isLoggedIn] = useState(false);
   const [userRole] = useState("guest");
-  // Example test values:
-  // const [isLoggedIn] = useState(true);
-  // const [userRole] = useState("admin");
-  // const [userRole] = useState("faculty");
-  // const [userRole] = useState("driver");
-  // const [userRole] = useState("user");
 
   const [currentLocation, setCurrentLocation] = useState("");
   const [destination, setDestination] = useState("");
@@ -345,8 +338,8 @@ export default function Home() {
               </p>
 
               <div className="hero-actions">
-                <a href="#map" className="primary-btn">Open Live Map</a>
                 <a href="#routes" className="secondary-btn">Browse Schedules</a>
+                <a href="#map" className="primary-btn">Open Live Map</a>
               </div>
             </div>
 
@@ -375,6 +368,12 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          </section>
+
+            <RoutePreview darkMode={darkMode} />
+
+            <section className="section" id="map">
         </section>
 
         <section className="section" id="map">
@@ -560,39 +559,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section" id="routes">
-          <div className="container">
-            <h2 className="section-title">Bus schedules</h2>
-            <p className="section-subtitle">
-              Search available public routes and compare stops, timing, and service
-              coverage.
-            </p>
-
-            <div className="grid-3">
-              {routes.map((route) => (
-                <div className="card route-card" key={route.id}>
-                  <h3>{route.name}</h3>
-                  <div className="route-meta">
-                    {route.timing} • {route.frequency}
-                  </div>
-                  <div className="stops-list">
-                    {route.stops.map((stop, index) => (
-                      <div className="stop-row" key={`${route.id}-${stop.name}-${index}`}>
-                        <div className="stop-pin" />
-                        <div>
-                          <div className="stop-name">{stop.name}</div>
-                          <div className="stop-served">
-                            Served buildings: {stop.served}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        
       </main>
 
       <Footer />

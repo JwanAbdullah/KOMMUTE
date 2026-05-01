@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import "./App.css";
 
@@ -14,6 +14,9 @@ import ReportDelay from "./pages/driver/ReportDelay";
 import DriversDashboard from "./pages/admin/DriversDashboard";
 import RequestsDashboard from "./pages/admin/RequestsDashboard";
 import ReportsDashboard from "./pages/admin/ReportsDashboard";
+import Resources from "./pages/Routes";
+import FAQ from "./pages/FAQ";
+import BusStops from "./pages/BusStops";
 
 function ScrollToHash() {
   const location = useLocation();
@@ -21,7 +24,6 @@ function ScrollToHash() {
   useEffect(() => {
     if (location.hash) {
       const el = document.querySelector(location.hash);
-
       if (el) {
         setTimeout(() => {
           el.scrollIntoView({ behavior: "smooth" });
@@ -36,22 +38,35 @@ function ScrollToHash() {
 }
 
 export default function App() {
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem("kommuteTheme") === "dark";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("kommuteTheme", darkMode ? "dark" : "light");
+  }, [darkMode]);
+
+  const themeProps = { darkMode, setDarkMode };
+
   return (
     <BrowserRouter>
       <ScrollToHash />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/submit-report" element={<SubmitReport />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/faculty&club/request-bus" element={<RequestBus />} />
-        <Route path="/faculty&club/my-requests" element={<MyRequests />} />
-        <Route path="/driver/report-delay" element={<ReportDelay />} />
-        <Route path="/admin/drivers-management" element={<DriversDashboard />} />
-        <Route path="/admin/requests-dashboard" element={<RequestsDashboard />} />
-        <Route path="/admin/reports-dashboard" element={<ReportsDashboard />} />
+        <Route path="/" element={<Home {...themeProps} />} />
+        <Route path="/about" element={<About {...themeProps} />} />
+        <Route path="/contact" element={<Contact {...themeProps} />} />
+        <Route path="/submit-report" element={<SubmitReport {...themeProps} />} />
+        <Route path="/login" element={<Login {...themeProps} />} />
+        <Route path="/profile" element={<Profile {...themeProps} />} />
+        <Route path="/faculty&club/request-bus" element={<RequestBus {...themeProps} />} />
+        <Route path="/faculty&club/my-requests" element={<MyRequests {...themeProps} />} />
+        <Route path="/driver/report-delay" element={<ReportDelay {...themeProps} />} />
+        <Route path="/admin/drivers-management" element={<DriversDashboard {...themeProps} />} />
+        <Route path="/admin/requests-dashboard" element={<RequestsDashboard {...themeProps} />} />
+        <Route path="/admin/reports-dashboard" element={<ReportsDashboard {...themeProps} />} />
+        <Route path="/resources" element={<Resources darkMode={darkMode} setDarkMode={setDarkMode} />}/>
+        <Route path="/faq" element={<FAQ darkMode={darkMode} setDarkMode={setDarkMode} />}/>
+        <Route path="/BusStops" element={<BusStops darkMode={darkMode} setDarkMode={setDarkMode} />}/>
       </Routes>
     </BrowserRouter>
   );

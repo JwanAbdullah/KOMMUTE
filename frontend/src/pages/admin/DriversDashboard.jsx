@@ -37,8 +37,8 @@ const initialDrivers = [
   },
 ];
 
-export default function DriversDashboard() {
-  const [darkMode, setDarkMode] = useState(false);
+export default function DriversDashboard({ darkMode, setDarkMode }) {
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [drivers, setDrivers] = useState(initialDrivers);

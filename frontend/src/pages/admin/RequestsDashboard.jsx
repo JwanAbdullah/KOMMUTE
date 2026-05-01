@@ -41,8 +41,8 @@ const initialRequests = [
   },
 ];
 
-export default function RequestsDashboard() {
-  const [darkMode, setDarkMode] = useState(false);
+export default function RequestsDashboard({ darkMode, setDarkMode }) {
+
   const [statusFilter, setStatusFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [requests, setRequests] = useState(initialRequests);

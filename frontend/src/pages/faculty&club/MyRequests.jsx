@@ -26,8 +26,8 @@ const mockRequests = [
   },
 ];
 
-export default function MyRequests() {
-  const [darkMode, setDarkMode] = useState(false);
+export default function MyRequests({ darkMode, setDarkMode }) {
+
 
   return (
     <div className={darkMode ? "app-shell dark" : "app-shell"}>
@@ -37,6 +37,7 @@ export default function MyRequests() {
         <section className="section">
           <div className="container">
             <div className="page-header">
+            
               <h1>My Requests</h1>
               <p>
                 View the status of your submitted transportation requests.
