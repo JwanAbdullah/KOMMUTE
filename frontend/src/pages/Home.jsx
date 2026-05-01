@@ -9,7 +9,6 @@ import {
   Polyline,
   useMap,
 } from "react-leaflet";
-import { routes } from "../services/mockData";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 
@@ -133,9 +132,10 @@ function getRouteWaitInfo(route, now) {
 }
 
 export default function Home({ darkMode, setDarkMode }) {
-
   const [isLoggedIn] = useState(false);
   const [userRole] = useState("guest");
+
+  const [routes, setRoutes] = useState([]);
 
   const [currentLocation, setCurrentLocation] = useState("");
   const [destination, setDestination] = useState("");
@@ -143,6 +143,13 @@ export default function Home({ darkMode, setDarkMode }) {
   const [homeRouteCoords, setHomeRouteCoords] = useState([]);
   const [homeRouteLoading, setHomeRouteLoading] = useState(false);
   const [homeRouteError, setHomeRouteError] = useState("");
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/routes")
+      .then((res) => res.json())
+      .then(setRoutes)
+      .catch((err) => console.error("Failed to fetch routes:", err));
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -169,7 +176,7 @@ export default function Home({ darkMode, setDarkMode }) {
     });
 
     return found || "none";
-  }, [currentLocation, destination]);
+  }, [currentLocation, destination, routes]);
 
   const matchedRouteWaitInfo = useMemo(() => {
     if (!matchedRoute || matchedRoute === "same" || matchedRoute === "none") {
@@ -179,88 +186,86 @@ export default function Home({ darkMode, setDarkMode }) {
     return getRouteWaitInfo(matchedRoute, now);
   }, [matchedRoute, now]);
 
-
-
   const activeRoutesCount = useMemo(() => {
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-  return routes.filter((route) => {
-    if (route.scheduleType === "fixed" && route.trips?.length) {
-      return route.trips.some((trip) => {
-        const depart = parseTimeToMinutes(trip.depart);
-        const ret = parseTimeToMinutes(trip.return);
-        return currentMinutes >= depart && currentMinutes <= ret;
-      });
-    }
+    return routes.filter((route) => {
+      if (route.scheduleType === "fixed" && route.trips?.length) {
+        return route.trips.some((trip) => {
+          const depart = parseTimeToMinutes(trip.depart);
+          const ret = parseTimeToMinutes(trip.return);
+          return currentMinutes >= depart && currentMinutes <= ret;
+        });
+      }
 
-    if (route.scheduleType === "interval" && route.startTime && route.endTime) {
-      const start = parseTimeToMinutes(route.startTime);
-      const end = parseTimeToMinutes(route.endTime);
-      return currentMinutes >= start && currentMinutes <= end;
-    }
+      if (route.scheduleType === "interval" && route.startTime && route.endTime) {
+        const start = parseTimeToMinutes(route.startTime);
+        const end = parseTimeToMinutes(route.endTime);
+        return currentMinutes >= start && currentMinutes <= end;
+      }
 
-    if (route.timing) {
-      const match = route.timing.match(/(\d{1,2}:\d{2})\s*(AM|PM)\s*-\s*(\d{1,2}:\d{2})\s*(AM|PM)/i);
+      if (route.timing) {
+        const match = route.timing.match(
+          /(\d{1,2}:\d{2})\s*(AM|PM)\s*-\s*(\d{1,2}:\d{2})\s*(AM|PM)/i
+        );
 
-      if (!match) return false;
+        if (!match) return false;
 
-      const [, startTime, startPeriod, endTime, endPeriod] = match;
+        const [, startTime, startPeriod, endTime, endPeriod] = match;
 
-      const to24h = (time, period) => {
-        let [h, m] = time.split(":").map(Number);
-        const upper = period.toUpperCase();
+        const to24h = (time, period) => {
+          let [h, m] = time.split(":").map(Number);
+          const upper = period.toUpperCase();
+          if (upper === "PM" && h !== 12) h += 12;
+          if (upper === "AM" && h === 12) h = 0;
+          return h * 60 + m;
+        };
 
-        if (upper === "PM" && h !== 12) h += 12;
-        if (upper === "AM" && h === 12) h = 0;
+        const start = to24h(startTime, startPeriod);
+        const end = to24h(endTime, endPeriod);
 
-        return h * 60 + m;
-      };
+        return currentMinutes >= start && currentMinutes <= end;
+      }
 
-      const start = to24h(startTime, startPeriod);
-      const end = to24h(endTime, endPeriod);
-
-      return currentMinutes >= start && currentMinutes <= end;
-    }
-
-    return false;
-  }).length;
-}, [now]);
+      return false;
+    }).length;
+  }, [now, routes]);
 
   const busesInOperation = useMemo(() => {
     if (activeRoutesCount === 0) return 0;
-    return 20; //assumption of 20 buses total in operation across all active routes 
+    return 20;
   }, [activeRoutesCount]);
 
   const averageWaitDisplay = useMemo(() => {
-  const waits = routes
-    .map((route) => {
-      if (route.frequency) {
-        const match = route.frequency.match(/(\d+)/);
-        if (match) {
-          const frequencyMinutes = Number(match[1]);
-          return Math.round(frequencyMinutes / 2);
+    const waits = routes
+      .map((route) => {
+        if (route.frequency) {
+          const match = route.frequency.match(/(\d+)/);
+          if (match) {
+            const frequencyMinutes = Number(match[1]);
+            return Math.round(frequencyMinutes / 2);
+          }
         }
-      }
 
-      if (route.scheduleType === "fixed" || route.trips?.length) {
-        const info = getRouteWaitInfo(route, now);
-        if (info && typeof info.waitMinutes === "number") {
-          return info.waitMinutes;
+        if (route.scheduleType === "fixed" || route.trips?.length) {
+          const info = getRouteWaitInfo(route, now);
+          if (info && typeof info.waitMinutes === "number") {
+            return info.waitMinutes;
+          }
         }
-      }
 
-      return null;
-    })
-    .filter((wait) => wait !== null && wait <= 20);
+        return null;
+      })
+      .filter((wait) => wait !== null && wait <= 20);
 
-  if (!waits.length) return "6 min";
+    if (!waits.length) return "6 min";
 
-  const avg = Math.round(
-    waits.reduce((sum, value) => sum + value, 0) / waits.length
-  );
+    const avg = Math.round(
+      waits.reduce((sum, value) => sum + value, 0) / waits.length
+    );
 
-  return `${avg} min`;
-}, [now]);
+    return `${avg} min`;
+  }, [now, routes]);
 
   const nextDepartureDisplay = useMemo(() => {
     const times = routes
@@ -269,7 +274,8 @@ export default function Home({ darkMode, setDarkMode }) {
       .map((i) => i.nextArrival);
 
     return times.length ? times[0] : "--";
-  }, [now]);
+  }, [now, routes]);
+
   useEffect(() => {
     if (!currentLocation || !destination || currentLocation === destination) {
       setHomeRouteCoords([]);
@@ -368,13 +374,9 @@ export default function Home({ darkMode, setDarkMode }) {
               </div>
             </div>
           </div>
-
-          </section>
-
-            <RoutePreview darkMode={darkMode} />
-
-            <section className="section" id="map">
         </section>
+
+        <RoutePreview darkMode={darkMode} />
 
         <section className="section" id="map">
           <div className="container">
@@ -558,8 +560,6 @@ export default function Home({ darkMode, setDarkMode }) {
             </div>
           </div>
         </section>
-
-        
       </main>
 
       <Footer />
