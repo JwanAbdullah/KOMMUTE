@@ -1,51 +1,21 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
-
-const initialRequests = [
-  {
-    id: "REQ-201",
-    requester: "Engineering Club",
-    type: "Event",
-    date: "2026-04-20",
-    route: "Campus Center → Auditorium",
-    passengers: 40,
-    status: "Pending",
-  },
-  {
-    id: "REQ-202",
-    requester: "Math Department",
-    type: "Exam",
-    date: "2026-04-22",
-    route: "Dorms → Building 22",
-    passengers: 85,
-    status: "Approved",
-  },
-  {
-    id: "REQ-203",
-    requester: "Media Club",
-    type: "Club Activity",
-    date: "2026-04-24",
-    route: "Main Gate → External Venue",
-    passengers: 25,
-    status: "Rejected",
-  },
-  {
-    id: "REQ-204",
-    requester: "Physics Department",
-    type: "Event",
-    date: "2026-04-25",
-    route: "Parking 900 → Conference Hall",
-    passengers: 30,
-    status: "Pending",
-  },
-];
+import { getRequests, updateRequestStatus } from "../../services/requestService";
 
 export default function RequestsDashboard({ darkMode, setDarkMode }) {
-
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState("All");
   const [search, setSearch] = useState("");
-  const [requests, setRequests] = useState(initialRequests);
+
+  useEffect(() => {
+    getRequests()
+      .then(setRequests)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredRequests = useMemo(() => {
     return requests.filter((request) => {
@@ -53,7 +23,6 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
         statusFilter === "All" ? true : request.status === statusFilter;
 
       const matchesSearch =
-        request.id.toLowerCase().includes(search.toLowerCase()) ||
         request.requester.toLowerCase().includes(search.toLowerCase()) ||
         request.type.toLowerCase().includes(search.toLowerCase());
 
@@ -61,14 +30,15 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
     });
   }, [requests, statusFilter, search]);
 
-  const updateRequestStatus = (requestId, newStatus) => {
-    setRequests((prev) =>
-      prev.map((request) =>
-        request.id === requestId
-          ? { ...request, status: newStatus }
-          : request
-      )
-    );
+  const handleStatusUpdate = async (id, newStatus) => {
+    try {
+      const updated = await updateRequestStatus(id, newStatus);
+      setRequests((prev) =>
+        prev.map((r) => (r._id === updated._id ? updated : r))
+      );
+    } catch (err) {
+      console.error(err.message);
+    }
   };
 
   const getStatusClassName = (status) => {
@@ -98,7 +68,7 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
                   <input
                     className="input"
                     type="text"
-                    placeholder="Search by ID, requester, or type"
+                    placeholder="Search by requester or type"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
@@ -120,9 +90,17 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
               </div>
             </div>
 
+            {loading && (
+              <div className="info-box">Loading requests...</div>
+            )}
+
+            {error && (
+              <div className="error-box">{error}</div>
+            )}
+
             <div className="grid-3">
               {filteredRequests.map((request) => (
-                <div className="card route-card" key={request.id}>
+                <div className="card route-card" key={request._id}>
                   <div
                     style={{
                       display: "flex",
@@ -134,7 +112,7 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
                     }}
                   >
                     <div>
-                      <h3>{request.id}</h3>
+                      <h3>{request.requester}</h3>
                       <div className="route-meta">
                         {request.type} • {request.date}
                       </div>
@@ -147,14 +125,25 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
 
                   <div className="list">
                     <div className="list-item">
-                      <strong>Requester:</strong> {request.requester}
+                      <strong>From:</strong> {request.pickupLocation}
                     </div>
                     <div className="list-item">
-                      <strong>Route:</strong> {request.route}
+                      <strong>To:</strong> {request.destination}
+                    </div>
+                    <div className="list-item">
+                      <strong>Departure:</strong> {request.departureTime}
+                    </div>
+                    <div className="list-item">
+                      <strong>Return:</strong> {request.returnTime}
                     </div>
                     <div className="list-item">
                       <strong>Passengers:</strong> {request.passengers}
                     </div>
+                    {request.notes && (
+                      <div className="list-item">
+                        <strong>Notes:</strong> {request.notes}
+                      </div>
+                    )}
                   </div>
 
                   <div
@@ -167,14 +156,14 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
                   >
                     <button
                       className="primary-btn"
-                      onClick={() => updateRequestStatus(request.id, "Approved")}
+                      onClick={() => handleStatusUpdate(request._id, "Approved")}
                     >
                       Approve
                     </button>
 
                     <button
                       className="danger-btn"
-                      onClick={() => updateRequestStatus(request.id, "Rejected")}
+                      onClick={() => handleStatusUpdate(request._id, "Rejected")}
                     >
                       Reject
                     </button>
@@ -183,7 +172,7 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
               ))}
             </div>
 
-            {filteredRequests.length === 0 && (
+            {!loading && !error && filteredRequests.length === 0 && (
               <div className="info-box" style={{ marginTop: 18 }}>
                 No requests match the current filters.
               </div>
