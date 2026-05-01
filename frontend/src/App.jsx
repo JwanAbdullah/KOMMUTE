@@ -17,6 +17,7 @@ import ReportsDashboard from "./pages/admin/ReportsDashboard";
 import Resources from "./pages/Routes";
 import FAQ from "./pages/FAQ";
 import BusStops from "./pages/BusStops";
+import Register from "./pages/Register";
 
 function ScrollToHash() {
   const location = useLocation();
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="/resources" element={<Resources darkMode={darkMode} setDarkMode={setDarkMode} />}/>
         <Route path="/faq" element={<FAQ darkMode={darkMode} setDarkMode={setDarkMode} />}/>
         <Route path="/BusStops" element={<BusStops darkMode={darkMode} setDarkMode={setDarkMode} />}/>
+        <Route path="/register" element={<Register />} />
       </Routes>
     </BrowserRouter>
   );

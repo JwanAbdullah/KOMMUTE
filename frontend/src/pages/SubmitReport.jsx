@@ -1,18 +1,23 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { stops } from "../services/mockData";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 
+const API_URL = "http://localhost:5000/api";
+
 export default function SubmitReport({ darkMode, setDarkMode }) {
-  
-    const [isLoggedIn] = useState(false);
-    const [userRole] = useState("guest");
-    
-  const navigate = useNavigate();
+  const storedUser = JSON.parse(localStorage.getItem("kommuteUser"));
+  const isLoggedIn = storedUser?.isLoggedIn || false;
+  const userRole = storedUser?.role || "guest";
+
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
   const [form, setForm] = useState({
-    fullName: "",
-    email: "",
+    fullName: storedUser?.name || "",
+    email: storedUser?.email || "",
     reportType: "",
     route: "",
     station: "",
@@ -21,40 +26,93 @@ export default function SubmitReport({ darkMode, setDarkMode }) {
 
   function handleChange(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setError("");
+    setSubmitted(false);
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    setError("");
+    setSubmitted(false);
+
     if (
       !form.fullName ||
       !form.email ||
       !form.reportType ||
       !form.route ||
+      !form.station ||
       !form.description
     ) {
+      setError("Please fill in all required fields.");
       return;
     }
 
-    navigate("/report-confirmation");
+    if (!storedUser?.token) {
+      setError("You must be logged in to submit a report.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/reports`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${storedUser.token}`,
+        },
+        body: JSON.stringify({
+          title: `${form.reportType} report`,
+          category: form.reportType,
+          route: form.route,
+          stop: form.station,
+          description: form.description,
+          reportType: form.reportType,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Failed to submit report.");
+        return;
+      }
+
+      setSubmitted(true);
+
+      setForm({
+        fullName: storedUser?.name || "",
+        email: storedUser?.email || "",
+        reportType: "",
+        route: "",
+        station: "",
+        description: "",
+      });
+    } catch (err) {
+      setError("Could not connect to the backend.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <div className={darkMode ? "app-shell dark" : "app-shell"}>
       <Header
-              darkMode={darkMode}
-              setDarkMode={setDarkMode}
-              isLoggedIn={isLoggedIn}
-              userRole={userRole}
-            />
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        isLoggedIn={isLoggedIn}
+        userRole={userRole}
+      />
+
       <div className="container">
-        <div className="page-header">  
+        <div className="page-header">
           <h1>Submit a Service Report</h1>
-          <p>
-            Report delays, safety issues, or other transportation problems. Frontend-only for now.
-          </p>
+          <p>Report delays, safety issues, or other transportation problems.</p>
         </div>
 
         <div className="card form-card">
+
+
           <form onSubmit={handleSubmit}>
             <div className="form-grid">
               <div className="field">
@@ -65,6 +123,7 @@ export default function SubmitReport({ darkMode, setDarkMode }) {
                   value={form.fullName}
                   onChange={handleChange}
                   placeholder="Your name"
+                  required
                 />
               </div>
 
@@ -77,6 +136,7 @@ export default function SubmitReport({ darkMode, setDarkMode }) {
                   value={form.email}
                   onChange={handleChange}
                   placeholder="you@example.com"
+                  required
                 />
               </div>
 
@@ -87,10 +147,13 @@ export default function SubmitReport({ darkMode, setDarkMode }) {
                   name="reportType"
                   value={form.reportType}
                   onChange={handleChange}
+                  required
                 >
                   <option value="">Select type</option>
                   <option value="Delay">Delay</option>
                   <option value="Safety Issue">Safety Issue</option>
+                  <option value="Capacity">Capacity</option>
+                  <option value="Service Issue">Service Issue</option>
                   <option value="Other">Other</option>
                 </select>
               </div>
@@ -102,14 +165,17 @@ export default function SubmitReport({ darkMode, setDarkMode }) {
                   name="route"
                   value={form.route}
                   onChange={handleChange}
+                  required
                 >
                   <option value="">Select route</option>
-                  <option value="Route One">Route One</option>
-                  <option value="Route Two">Route Two</option>
-                  <option value="Route Three">Route Three</option>
-                  <option value="Route Four">Route Four</option>
-                  <option value="Route Five">Route Five</option>
-                  <option value="Route Six">Route Six</option>
+                  <option value="Route 1">Route 1</option>
+                  <option value="Route 2">Route 2</option>
+                  <option value="Route 3">Route 3</option>
+                  <option value="Route 4">Route 4</option>
+                  <option value="Route 5">Route 5</option>
+                  <option value="Route 6">Route 6</option>
+                  <option value="Route 7">Route 7</option>
+                  <option value="Route 8">Route 8</option>
                 </select>
               </div>
 
@@ -120,6 +186,7 @@ export default function SubmitReport({ darkMode, setDarkMode }) {
                   name="station"
                   value={form.station}
                   onChange={handleChange}
+                  required
                 >
                   <option value="">Select stop</option>
                   {stops.map((stop) => (
@@ -139,6 +206,7 @@ export default function SubmitReport({ darkMode, setDarkMode }) {
                   value={form.description}
                   onChange={handleChange}
                   placeholder="Describe the issue..."
+                  required
                 />
               </div>
 
@@ -148,10 +216,30 @@ export default function SubmitReport({ darkMode, setDarkMode }) {
               </div>
             </div>
 
-            <button className="primary-btn" type="submit">Submit Report</button>
+            {error && <div className="warning-box">{error}</div>}
+
+            {!isLoggedIn && (
+              <div className="info-box">
+                You need to{" "}
+                <Link to="/login" style={{ fontWeight: 800 }}>
+                  login
+                </Link>{" "}
+                before submitting a report.
+              </div>
+            )}
+
+            <button className="primary-btn" type="submit" disabled={loading}>
+              {loading ? "Submitting..." : "Submit Report"}
+            </button>
+            {submitted && (
+            <div className="success-box">
+              Thank you for reaching out. Your enquiry has been submitted successfully.
+            </div>
+          )}
           </form>
         </div>
       </div>
+
       <Footer />
     </div>
   );

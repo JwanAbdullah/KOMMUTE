@@ -1,131 +1,111 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 
-const initialReports = [
-  {
-    id: "REP-301",
-    title: "Bus arrived late",
-    category: "Delay",
-    submittedBy: "Student",
-    fullName: "Ahmad User",
-    email: "ahmad@kfupm.edu.sa",
-    reportType: "Delay",
-    route: "Route 2",
-    stop: "Station 312",
-    description: "The bus arrived much later than expected during the morning trip.",
-    imageName: "delay-photo.jpg",
-    date: "2026-04-20",
-    status: "Open",
-  },
-  {
-    id: "REP-302",
-    title: "Driver skipped stop",
-    category: "Service Issue",
-    submittedBy: "Faculty",
-    fullName: "Mariam Alshammari",
-    email: "mariam@kfupm.edu.sa",
-    reportType: "Service Issue",
-    route: "Route 1",
-    stop: "Building 22",
-    description: "The bus passed the stop without stopping even though students were waiting.",
-    imageName: "no-image",
-    date: "2026-04-21",
-    status: "In Progress",
-  },
-  {
-    id: "REP-303",
-    title: "Bus overcrowded",
-    category: "Capacity",
-    submittedBy: "Student",
-    fullName: "Faisal Salem",
-    email: "faisal@kfupm.edu.sa",
-    reportType: "Capacity",
-    route: "Route 5",
-    stop: "Parking 900",
-    description: "The bus was too full and several students could not get on.",
-    imageName: "crowded-bus.png",
-    date: "2026-04-21",
-    status: "Resolved",
-  },
-
-  {
-    id: "REP-304",
-    title: "Delay reported on Route 2",
-    category: "Driver Delay",
-    submittedBy: "Driver",
-    fullName: "Ahmed Alharbi",
-    email: "driver101@kommute.com",
-    reportType: "Delay",
-    route: "Route 2",
-    stop: "Station 312",
-    description: "Route 2 will be delayed by 10 minutes at Station 312 due to traffic congestion.",
-    imageName: "no-image",
-    date: "2026-04-22",
-    status: "Open",
-  },
-  {
-    id: "REP-305",
-    title: "Delay reported on Route 5",
-    category: "Driver Delay",
-    submittedBy: "Driver",
-    fullName: "Mansour Alotaibi",
-    email: "driver102@kommute.com",
-    reportType: "Delay",
-    route: "Route 5",
-    stop: "Building 58",
-    description: "Route 5 will be delayed by 15 minutes at Building 58 due to passenger loading delay.",
-    imageName: "no-image",
-    date: "2026-04-22",
-    status: "In Progress",
-  },
-  {
-    id: "REP-306",
-    title: "Delay reported on Route 1",
-    category: "Driver Delay",
-    submittedBy: "Driver",
-    fullName: "Khaled Alghamdi",
-    email: "driver103@kommute.com",
-    reportType: "Delay",
-    route: "Route 1",
-    stop: "Parking 900",
-    description: "Route 1 was delayed by 8 minutes at Parking 900 بسبب ازدحام المرور.",
-    imageName: "no-image",
-    date: "2026-04-23",
-    status: "Resolved",
-  },
-];
+const API_URL = "http://localhost:5000/api";
 
 export default function ReportsDashboard({ darkMode, setDarkMode }) {
-
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [userFilter, setUserFilter] = useState("All");
-  const [reports, setReports] = useState(initialReports);
+
+  const [reports, setReports] = useState([]);
 
   const [selectedReport, setSelectedReport] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [editedStatus, setEditedStatus] = useState("Open");
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const getStoredUser = () => {
+    return JSON.parse(localStorage.getItem("kommuteUser"));
+  };
+
+  const getReportId = (report) => report._id || report.id;
+
+  const getSubmittedByLabel = (report) => {
+    if (report.submittedByUser?.role) return report.submittedByUser.role;
+    return report.submittedBy || "Unknown";
+  };
+
+  const getSubmittedName = (report) => {
+    if (report.submittedByUser?.name) return report.submittedByUser.name;
+    return report.fullName || "Unknown";
+  };
+
+  const getSubmittedEmail = (report) => {
+    if (report.submittedByUser?.email) return report.submittedByUser.email;
+    return report.email || "No email";
+  };
+
+  const getReportDate = (report) => {
+    if (report.createdAt) {
+      return new Date(report.createdAt).toLocaleDateString();
+    }
+
+    return report.date || "No date";
+  };
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      const storedUser = getStoredUser();
+
+      if (!storedUser?.token) {
+        setError("You must be logged in as an admin to view reports.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/reports`, {
+          headers: {
+            Authorization: `Bearer ${storedUser.token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.message || "Failed to fetch reports.");
+          setReports([]);
+          return;
+        }
+
+        setReports(Array.isArray(data) ? data : data.reports || []);
+      } catch (err) {
+        setError("Could not connect to the backend.");
+        setReports([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, []);
+
   const filteredReports = useMemo(() => {
     return reports.filter((report) => {
-        const matchesSearch =
-        report.id.toLowerCase().includes(search.toLowerCase()) ||
-        report.title.toLowerCase().includes(search.toLowerCase()) ||
-        report.category.toLowerCase().includes(search.toLowerCase()) ||
-        report.stop.toLowerCase().includes(search.toLowerCase()) ||
-        report.route.toLowerCase().includes(search.toLowerCase());
+      const reportId = getReportId(report) || "";
+      const submittedByLabel = getSubmittedByLabel(report);
 
-        const matchesStatus =
+      const matchesSearch =
+        reportId.toLowerCase().includes(search.toLowerCase()) ||
+        (report.title || "").toLowerCase().includes(search.toLowerCase()) ||
+        (report.category || "").toLowerCase().includes(search.toLowerCase()) ||
+        (report.stop || "").toLowerCase().includes(search.toLowerCase()) ||
+        (report.route || "").toLowerCase().includes(search.toLowerCase());
+
+      const matchesStatus =
         statusFilter === "All" ? true : report.status === statusFilter;
 
-        const matchesUser =
-        userFilter === "All" ? true : report.submittedBy === userFilter;
+      const matchesUser =
+        userFilter === "All" ? true : submittedByLabel === userFilter;
 
-        return matchesSearch && matchesStatus && matchesUser;
+      return matchesSearch && matchesStatus && matchesUser;
     });
-    }, [reports, search, statusFilter, userFilter]);
+  }, [reports, search, statusFilter, userFilter]);
 
   const openDetailsModal = (report) => {
     setShowStatusModal(false);
@@ -136,23 +116,51 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
   const openStatusModal = (report) => {
     setShowDetailsModal(false);
     setSelectedReport(report);
-    setEditedStatus(report.status);
+    setEditedStatus(report.status || "Open");
     setShowStatusModal(true);
   };
 
-  const handleStatusUpdate = (e) => {
+  const handleStatusUpdate = async (e) => {
     e.preventDefault();
 
-    setReports((prev) =>
-      prev.map((report) =>
-        report.id === selectedReport.id
-          ? { ...report, status: editedStatus }
-          : report
-      )
-    );
+    const storedUser = getStoredUser();
+    const reportId = getReportId(selectedReport);
 
-    setShowStatusModal(false);
-    setSelectedReport(null);
+    if (!storedUser?.token) {
+      alert("You must be logged in.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/reports/${reportId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${storedUser.token}`,
+        },
+        body: JSON.stringify({
+          status: editedStatus,
+        }),
+      });
+
+      const updatedReport = await res.json();
+
+      if (!res.ok) {
+        alert(updatedReport.message || "Failed to update status.");
+        return;
+      }
+
+      setReports((prev) =>
+        prev.map((report) =>
+          getReportId(report) === reportId ? updatedReport : report
+        )
+      );
+
+      setShowStatusModal(false);
+      setSelectedReport(null);
+    } catch (err) {
+      alert("Could not connect to the backend.");
+    }
   };
 
   const getStatusClassName = (status) => {
@@ -189,89 +197,131 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
                 </div>
 
                 <div className="field">
-                    <label>User filter</label>
-                    <select
-                        className="select"
-                        value={userFilter}
-                        onChange={(e) => setUserFilter(e.target.value)}
-                    >
-                        <option value="All">All</option>
-                        <option value="Student">Student</option>
-                        <option value="Faculty">Faculty</option>
-                        <option value="Club Member">Club Member</option>
-                        <option value="Driver">Driver</option>
-                    </select>
-                    </div>
-              </div>
-            </div>
-
-            <div className="grid-3">
-              {filteredReports.map((report) => (
-                <div className="card route-card" key={report.id}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      gap: 12,
-                      marginBottom: 10,
-                      flexWrap: "wrap",
-                    }}
+                  <label>Status filter</label>
+                  <select
+                    className="select"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
                   >
-                    <div>
-                      <h3>{report.title}</h3>
-                      <div className="route-meta">
-                        {report.id} • {report.category}
-                      </div>
-                    </div>
-
-                    <span className={getStatusClassName(report.status)}>
-                      {report.status}
-                    </span>
-                  </div>
-
-                  <div className="list">
-                    <div className="list-item">
-                      <strong>Submitted by:</strong> {report.submittedBy}
-                    </div>
-                    <div className="list-item">
-                      <strong>Location:</strong> {report.stop}
-                    </div>
-                    <div className="list-item">
-                      <strong>Date:</strong> {report.date}
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 10,
-                      marginTop: 16,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <button
-                      className="primary-btn"
-                      onClick={() => openDetailsModal(report)}
-                    >
-                      View Details
-                    </button>
-
-                    <button
-                      className="secondary-btn"
-                      onClick={() => openStatusModal(report)}
-                    >
-                      Update Status
-                    </button>
-                  </div>
+                    <option value="All">All</option>
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                  </select>
                 </div>
-              ))}
+
+                <div className="field">
+                  <label>User filter</label>
+                  <select
+                    className="select"
+                    value={userFilter}
+                    onChange={(e) => setUserFilter(e.target.value)}
+                  >
+                    <option value="All">All</option>
+                    <option value="user">Regular User</option>
+                    <option value="faculty">Faculty</option>
+                    <option value="driver">Driver</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
-            {filteredReports.length === 0 && (
-              <div className="info-box" style={{ marginTop: 18 }}>
-                No reports match the current filters.
-              </div>
+            {loading && <div className="info-box">Loading reports...</div>}
+
+            {error && <div className="warning-box">{error}</div>}
+
+            {!loading && !error && (
+              <>
+                <div className="grid-3">
+                  {filteredReports.map((report) => {
+                    const reportId = getReportId(report);
+                    const submittedByLabel = getSubmittedByLabel(report);
+
+                    return (
+                      <div
+                        className={`card route-card ${
+                          submittedByLabel === "driver"
+                            ? "driver-report-card"
+                            : ""
+                        }`}
+                        key={reportId}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            gap: 12,
+                            marginBottom: 10,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <div>
+                            <h3>{report.title}</h3>
+                            <div className="route-meta">
+                              {reportId} • {report.category}
+                            </div>
+
+                            {submittedByLabel === "driver" && (
+                              <span className="driver-source-badge">
+                                Driver Report
+                              </span>
+                            )}
+                          </div>
+
+                          <span className={getStatusClassName(report.status)}>
+                            {report.status}
+                          </span>
+                        </div>
+
+                        <div className="list">
+                          <div className="list-item">
+                            <strong>Submitted by:</strong> {submittedByLabel}
+                          </div>
+
+                          <div className="list-item">
+                            <strong>Location:</strong> {report.stop}
+                          </div>
+
+                          <div className="list-item">
+                            <strong>Date:</strong> {getReportDate(report)}
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 10,
+                            marginTop: 16,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <button
+                            className="primary-btn"
+                            onClick={() => openDetailsModal(report)}
+                          >
+                            View Details
+                          </button>
+
+                          <button
+                            className="secondary-btn"
+                            onClick={() => openStatusModal(report)}
+                          >
+                            Update Status
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {filteredReports.length === 0 && (
+                  <div className="info-box" style={{ marginTop: 18 }}>
+                    No reports match the current filters.
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>
@@ -292,6 +342,7 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
               <h3 style={{ margin: 0, color: "var(--primary-dark)" }}>
                 Report Details
               </h3>
+
               <button
                 className="icon-btn"
                 onClick={() => {
@@ -306,32 +357,47 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
 
             <div className="list">
               <div className="list-item">
-                <strong>Report ID:</strong> {selectedReport.id}
+                <strong>Report ID:</strong> {getReportId(selectedReport)}
               </div>
+
               <div className="list-item">
-                <strong>Full name:</strong> {selectedReport.fullName}
+                <strong>Full name:</strong> {getSubmittedName(selectedReport)}
               </div>
+
               <div className="list-item">
-                <strong>Email:</strong> {selectedReport.email}
+                <strong>Email:</strong> {getSubmittedEmail(selectedReport)}
               </div>
+
               <div className="list-item">
-                <strong>Submitted by:</strong> {selectedReport.submittedBy}
+                <strong>Submitted by:</strong>{" "}
+                {getSubmittedByLabel(selectedReport)}
               </div>
+
               <div className="list-item">
                 <strong>Report type:</strong> {selectedReport.reportType}
               </div>
+
               <div className="list-item">
                 <strong>Route:</strong> {selectedReport.route}
               </div>
+
               <div className="list-item">
                 <strong>Stop / Station:</strong> {selectedReport.stop}
               </div>
+
               <div className="list-item">
-                <strong>Date:</strong> {selectedReport.date}
+                <strong>Date:</strong> {getReportDate(selectedReport)}
               </div>
+
               <div className="list-item">
-                <strong>Image upload:</strong> {selectedReport.imageName}
+                <strong>Status:</strong> {selectedReport.status}
               </div>
+
+              <div className="list-item">
+                <strong>Image upload:</strong>{" "}
+                {selectedReport.imageName || "No image"}
+              </div>
+
               <div className="list-item">
                 <strong>Description:</strong> {selectedReport.description}
               </div>
@@ -355,6 +421,7 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
               <h3 style={{ margin: 0, color: "var(--primary-dark)" }}>
                 Update Report Status
               </h3>
+
               <button
                 className="icon-btn"
                 onClick={() => {
@@ -372,7 +439,9 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
                 <label>Report</label>
                 <input
                   className="input"
-                  value={`${selectedReport.id} - ${selectedReport.title}`}
+                  value={`${getReportId(selectedReport)} - ${
+                    selectedReport.title
+                  }`}
                   readOnly
                 />
               </div>
@@ -394,6 +463,7 @@ export default function ReportsDashboard({ darkMode, setDarkMode }) {
                 <button type="submit" className="primary-btn">
                   Save Status
                 </button>
+
                 <button
                   type="button"
                   className="secondary-btn"

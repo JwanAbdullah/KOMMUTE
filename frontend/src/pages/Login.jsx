@@ -1,24 +1,58 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+const API_URL = "http://localhost:5000/api";
+
 export default function Login({ darkMode }) {
-  const [role, setRole] = useState("user");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    const userData = {
-      isLoggedIn: true,
-      role,
-      email,
-    };
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-    localStorage.setItem("kommuteUser", JSON.stringify(userData));
+      const data = await res.json();
 
-    navigate("/");
+      if (!res.ok) {
+        setError(data.message || "Login failed.");
+        return;
+      }
+
+      const userData = {
+        isLoggedIn: true,
+        token: data.token,
+        id: data.user.id || data.user._id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role,
+      };
+
+      localStorage.setItem("kommuteUser", JSON.stringify(userData));
+
+      navigate("/");
+    } catch (err) {
+      setError("Could not connect to the backend.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,31 +89,29 @@ export default function Login({ darkMode }) {
             />
           </div>
 
-          <div className="field">
-            <label>Role</label>
-            <select
-              className="select"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="user">Regular User</option>
-              <option value="faculty">Faculty & Club</option>
-              <option value="driver">Driver</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
+          {error && <div className="warning-box">{error}</div>}
 
-          <button type="submit" className="primary-btn" style={{ width: "100%" }}>
-            Login
+          <button
+            type="submit"
+            className="primary-btn"
+            style={{ width: "100%", marginTop: 14 }}
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
         <div className="info-box">
-          Selected role: <strong>{role}</strong>
+          Do not have an account?{" "}
+          <Link to="/register" style={{ fontWeight: 800 }}>
+            Register
+          </Link>
         </div>
 
         <div style={{ marginTop: 16 }}>
-          <Link to="/" className="secondary-btn">Back Home</Link>
+          <Link to="/" className="secondary-btn">
+            Back Home
+          </Link>
         </div>
       </div>
     </div>
