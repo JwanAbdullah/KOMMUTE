@@ -59,7 +59,7 @@ export default function App() {
         <Route path="/contact" element={<Contact {...themeProps} />} />
         <Route path="/submit-report" element={<SubmitReport {...themeProps} />} />
         <Route path="/login" element={<Login {...themeProps} />} />
-        <Route path="/profile" element={<Profile {...themeProps} />} />
+        <Route path="/profile" element={<Profile darkMode={darkMode} setDarkMode={setDarkMode} /> } />
         <Route path="/faculty&club/request-bus" element={<RequestBus {...themeProps} />} />
         <Route path="/faculty&club/my-requests" element={<MyRequests {...themeProps} />} />
         <Route path="/driver/report-delay" element={<ReportDelay {...themeProps} />} />
@@ -69,7 +69,7 @@ export default function App() {
         <Route path="/resources" element={<Resources darkMode={darkMode} setDarkMode={setDarkMode} />}/>
         <Route path="/faq" element={<FAQ darkMode={darkMode} setDarkMode={setDarkMode} />}/>
         <Route path="/BusStops" element={<BusStops darkMode={darkMode} setDarkMode={setDarkMode} />}/>
-        <Route path="/register" element={<Register />} />
+        <Route path="/register" element={<Register darkMode={darkMode} setDarkMode={setDarkMode} /> } />
         <Route path="/admin/users-management" element={
     <UsersManagement darkMode={darkMode} setDarkMode={setDarkMode} /> } />
       </Routes>

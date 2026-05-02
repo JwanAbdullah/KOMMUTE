@@ -23,21 +23,22 @@ export default function DriversDashboard({ darkMode, setDarkMode }) {
   const [showEditModal, setShowEditModal] = useState(false);
 
   const [newDriver, setNewDriver] = useState({
-    id: "",
-    name: "",
-    assignedRoute: "",
-    status: "Active",
-    phone: "",
-  });
-  
-  const [editDriver, setEditDriver] = useState({
-    id: "",
-    name: "",
-    assignedRoute: "",
-    status: "Active",
-    phone: "",
-    lastUpdate: "",
-  });
+  driverId: "",
+  name: "",
+  assignedRoute: "",
+  email:"",
+  password:"",
+  status: "Active",
+  phone: "",
+});
+
+const [editDriver, setEditDriver] = useState({
+  driverId: "",
+  name: "",
+  assignedRoute: "",
+  status: "Active",
+  phone: "",
+});
   useEffect(() => {
     getDrivers()
       .then(setDrivers)
@@ -48,9 +49,9 @@ export default function DriversDashboard({ darkMode, setDarkMode }) {
   const filteredDrivers = useMemo(() => {
     return drivers.filter((driver) => {
       const matchesSearch =
-        driver.name.toLowerCase().includes(search.toLowerCase()) ||
-        driver.id.toLowerCase().includes(search.toLowerCase()) ||
-        driver.assignedRoute.toLowerCase().includes(search.toLowerCase());
+      (driver.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (driver.driverId || "").toLowerCase().includes(search.toLowerCase()) ||
+      (driver.assignedRoute || "").toLowerCase().includes(search.toLowerCase());
 
       const matchesStatus =
         statusFilter === "All" ? true : driver.status === statusFilter;
@@ -59,27 +60,29 @@ export default function DriversDashboard({ darkMode, setDarkMode }) {
     });
   }, [drivers, search, statusFilter]);
 
-  const handleAddDriver = (e) => {
-    e.preventDefault();
+  const handleAddDriver = async (e) => {
+  e.preventDefault();
+  setError("");
 
-    setDrivers((prev) => [
-      {
-        ...newDriver,
-        lastUpdate: "Just now",
-      },
-      ...prev,
-    ]);
+  try {
+    const created = await createDriver(newDriver);
+    setDrivers((prev) => [created, ...prev]);
 
     setNewDriver({
-      id: "",
+      driverId: "",
       name: "",
+      email: "",  
+      password: "",
       assignedRoute: "",
       status: "Active",
       phone: "",
     });
 
     setShowAddDriverModal(false);
-  };
+  } catch (err) {
+    setError(err.message || "Failed to add driver.");
+  }
+};
 
   const openProfileModal = (driver) => {
     setShowAddDriverModal(false);
@@ -101,7 +104,7 @@ export default function DriversDashboard({ darkMode, setDarkMode }) {
 
     setDrivers((prev) =>
       prev.map((driver) =>
-        driver.id === selectedDriver.id
+        driver._id === selectedDriver._id
           ? {
               ...editDriver,
               lastUpdate: "Just now",
@@ -116,7 +119,7 @@ export default function DriversDashboard({ darkMode, setDarkMode }) {
 
   const handleDeleteDriver = () => {
     setDrivers((prev) =>
-      prev.filter((driver) => driver.id !== selectedDriver.id)
+      prev.filter((driver) => driver._id !== selectedDriver._id)
     );
 
     setShowEditModal(false);
@@ -184,13 +187,14 @@ export default function DriversDashboard({ darkMode, setDarkMode }) {
                 </div>
               </div>
             </div>
-
+{loading && <div className="info-box">Loading drivers...</div>}
+{error && <div className="warning-box">{error}</div>}
             <div className="grid-3">
               {filteredDrivers.map((driver) => (
-                <div className="card route-card" key={driver.id}>
-                  <h3>{driver.name}</h3>
+                <div className="card route-card" key={driver._id}>
+                  <h3>{driver.user?.name || "Unknown Driver"}</h3>
                   <div className="route-meta">
-                    {driver.id} • {driver.assignedRoute}
+                    {driver.driverId} • {driver.user?.email}
                   </div>
 
                   <div className="list">
@@ -268,9 +272,9 @@ export default function DriversDashboard({ darkMode, setDarkMode }) {
                 <label>Driver ID</label>
                 <input
                   className="input"
-                  value={newDriver.id}
+                  value={newDriver.driverId}
                   onChange={(e) =>
-                    setNewDriver((prev) => ({ ...prev, id: e.target.value }))
+                    setNewDriver((prev) => ({ ...prev, driverId: e.target.value }))
                   }
                   placeholder="DRV-105"
                   required
@@ -289,6 +293,33 @@ export default function DriversDashboard({ darkMode, setDarkMode }) {
                   required
                 />
               </div>
+              <div className="field">
+  <label>Email</label>
+  <input
+    className="input"
+    type="email"
+    value={newDriver.email}
+    onChange={(e) =>
+      setNewDriver((prev) => ({ ...prev, email: e.target.value }))
+    }
+    placeholder="driver@example.com"
+    required
+  />
+</div>
+
+<div className="field">
+  <label>Password</label>
+  <input
+    className="input"
+    type="password"
+    value={newDriver.password}
+    onChange={(e) =>
+      setNewDriver((prev) => ({ ...prev, password: e.target.value }))
+    }
+    placeholder="Temporary password"
+    required
+  />
+</div>
 
               <div className="field">
                 <label>Assigned route</label>
@@ -378,7 +409,7 @@ export default function DriversDashboard({ darkMode, setDarkMode }) {
                 <strong>Name:</strong> {selectedDriver.name}
               </div>
               <div className="list-item">
-                <strong>Driver ID:</strong> {selectedDriver.id}
+                <strong>Driver ID:</strong> {selectedDriver.driverId}
               </div>
               <div className="list-item">
                 <strong>Assigned Route:</strong> {selectedDriver.assignedRoute}
@@ -429,9 +460,9 @@ export default function DriversDashboard({ darkMode, setDarkMode }) {
                 <label>Driver ID</label>
                 <input
                   className="input"
-                  value={editDriver.id}
+                  value={editDriver.driverId}
                   onChange={(e) =>
-                    setEditDriver((prev) => ({ ...prev, id: e.target.value }))
+                    setEditDriver((prev) => ({ ...prev, driverId: e.target.value }))
                   }
                   required
                 />
@@ -440,13 +471,14 @@ export default function DriversDashboard({ darkMode, setDarkMode }) {
               <div className="field">
                 <label>Driver Name</label>
                 <input
-                  className="input"
-                  value={editDriver.name}
-                  onChange={(e) =>
-                    setEditDriver((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  required
-                />
+                className="input"
+                value={newDriver.driverId}
+                onChange={(e) =>
+                  setNewDriver((prev) => ({ ...prev, driverId: e.target.value }))
+                }
+                placeholder="DRV-105"
+                required
+              />
               </div>
 
               <div className="field">

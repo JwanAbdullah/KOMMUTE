@@ -1,18 +1,33 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
 const driverSchema = new mongoose.Schema(
   {
-    driverId: { type: String, required: true, unique: true },
-    name: { type: String, required: true },
-    assignedRoute: { type: String, required: true },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      unique: true,
+    },
+    driverId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    assignedRoute: {
+      type: String,
+      required: true,
+    },
     status: {
       type: String,
-      enum: ['Active', 'On Break', 'Delayed'],
-      default: 'Active',
+      enum: ["Active", "On Break", "Delayed"],
+      default: "Active",
     },
-    phone: { type: String, required: true },
+    phone: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
-)
+);
 
-module.exports = mongoose.model('Driver', driverSchema)
+module.exports = mongoose.model("Driver", driverSchema);

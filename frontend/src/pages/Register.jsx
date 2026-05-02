@@ -111,16 +111,14 @@ export default function Register({ darkMode }) {
           <div className="field">
             <label>Role</label>
             <select
-              className="select"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
+                className="select"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
             >
-              <option value="user">Regular User</option>
-              <option value="faculty">Faculty & Club</option>
-              <option value="driver">Driver</option>
-              <option value="admin">Admin</option>
+                <option value="user">Regular User</option>
+                <option value="faculty">Faculty & Club</option>
             </select>
-          </div>
+            </div>
 
           {error && <div className="warning-box">{error}</div>}
 

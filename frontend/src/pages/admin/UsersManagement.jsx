@@ -19,6 +19,13 @@ export default function UsersManagement({ darkMode, setDarkMode }) {
     role: "user",
   });
 
+  const [driverInfo, setDriverInfo] = useState({
+    driverId: "",
+    assignedRoute: "",
+    status: "Active",
+    phone: "",
+  });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -42,7 +49,7 @@ export default function UsersManagement({ darkMode, setDarkMode }) {
         const data = await res.json();
 
         if (!res.ok) {
-          setError(data.message || "Failed to fetch users.");
+          setError(data.message || data.error || "Failed to fetch users.");
           return;
         }
 
@@ -70,6 +77,14 @@ export default function UsersManagement({ darkMode, setDarkMode }) {
     });
   }, [users, search, roleFilter]);
 
+  const getRoleLabel = (role) => {
+    if (role === "user") return "Regular User";
+    if (role === "faculty") return "Faculty & Club";
+    if (role === "driver") return "Driver";
+    if (role === "admin") return "Admin";
+    return role;
+  };
+
   const openProfileModal = (user) => {
     setShowEditModal(false);
     setSelectedUser(user);
@@ -79,16 +94,36 @@ export default function UsersManagement({ darkMode, setDarkMode }) {
   const openEditModal = (user) => {
     setShowProfileModal(false);
     setSelectedUser(user);
+
     setEditUser({
       name: user.name || "",
       email: user.email || "",
       role: user.role || "user",
     });
+
+    setDriverInfo({
+      driverId: "",
+      assignedRoute: "",
+      status: "Active",
+      phone: "",
+    });
+
     setShowEditModal(true);
   };
 
   const handleEditUser = async (e) => {
     e.preventDefault();
+
+    const payload = {
+      ...editUser,
+    };
+
+    if (editUser.role === "driver") {
+      payload.driverId = driverInfo.driverId;
+      payload.assignedRoute = driverInfo.assignedRoute;
+      payload.status = driverInfo.status;
+      payload.phone = driverInfo.phone;
+    }
 
     try {
       const res = await fetch(`${API_URL}/users/${selectedUser._id}`, {
@@ -97,18 +132,20 @@ export default function UsersManagement({ darkMode, setDarkMode }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${storedUser.token}`,
         },
-        body: JSON.stringify(editUser),
+        body: JSON.stringify(payload),
       });
 
       const updatedUser = await res.json();
 
       if (!res.ok) {
-        alert(updatedUser.message || "Failed to update user.");
+        alert(updatedUser.message || updatedUser.error || "Failed to update user.");
         return;
       }
 
       setUsers((prev) =>
-        prev.map((user) => (user._id === selectedUser._id ? updatedUser : user))
+        prev.map((user) =>
+          user._id === selectedUser._id ? updatedUser : user
+        )
       );
 
       setShowEditModal(false);
@@ -136,7 +173,7 @@ export default function UsersManagement({ darkMode, setDarkMode }) {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Failed to delete user.");
+        alert(data.message || data.error || "Failed to delete user.");
         return;
       }
 
@@ -146,14 +183,6 @@ export default function UsersManagement({ darkMode, setDarkMode }) {
     } catch (err) {
       alert("Could not connect to backend.");
     }
-  };
-
-  const getRoleLabel = (role) => {
-    if (role === "user") return "Regular User";
-    if (role === "faculty") return "Faculty & Club";
-    if (role === "driver") return "Driver";
-    if (role === "admin") return "Admin";
-    return role;
   };
 
   return (
@@ -392,6 +421,76 @@ export default function UsersManagement({ darkMode, setDarkMode }) {
                   <option value="admin">Admin</option>
                 </select>
               </div>
+
+              {editUser.role === "driver" && (
+                <>
+                  <div className="field">
+                    <label>Driver ID</label>
+                    <input
+                      className="input"
+                      value={driverInfo.driverId}
+                      onChange={(e) =>
+                        setDriverInfo((prev) => ({
+                          ...prev,
+                          driverId: e.target.value,
+                        }))
+                      }
+                      placeholder="DRV-105"
+                      required
+                    />
+                  </div>
+
+                  <div className="field">
+                    <label>Assigned Route</label>
+                    <input
+                      className="input"
+                      value={driverInfo.assignedRoute}
+                      onChange={(e) =>
+                        setDriverInfo((prev) => ({
+                          ...prev,
+                          assignedRoute: e.target.value,
+                        }))
+                      }
+                      placeholder="Route 3"
+                      required
+                    />
+                  </div>
+
+                  <div className="field">
+                    <label>Status</label>
+                    <select
+                      className="select"
+                      value={driverInfo.status}
+                      onChange={(e) =>
+                        setDriverInfo((prev) => ({
+                          ...prev,
+                          status: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="Active">Active</option>
+                      <option value="On Break">On Break</option>
+                      <option value="Delayed">Delayed</option>
+                    </select>
+                  </div>
+
+                  <div className="field">
+                    <label>Phone</label>
+                    <input
+                      className="input"
+                      value={driverInfo.phone}
+                      onChange={(e) =>
+                        setDriverInfo((prev) => ({
+                          ...prev,
+                          phone: e.target.value,
+                        }))
+                      }
+                      placeholder="+966 5X XXX XXXX"
+                      required
+                    />
+                  </div>
+                </>
+              )}
 
               <div
                 className="full-span"
