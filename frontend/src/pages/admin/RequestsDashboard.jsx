@@ -6,7 +6,8 @@ import { getRequests, updateRequestStatus } from "../../services/requestService"
 export default function RequestsDashboard({ darkMode, setDarkMode }) {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+
   const [statusFilter, setStatusFilter] = useState("All");
   const [search, setSearch] = useState("");
 
@@ -23,21 +24,26 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
         statusFilter === "All" ? true : request.status === statusFilter;
 
       const matchesSearch =
-        request.requester.toLowerCase().includes(search.toLowerCase()) ||
-        request.type.toLowerCase().includes(search.toLowerCase());
+        (request.requester || "").toLowerCase().includes(search.toLowerCase()) ||
+        (request.type || "").toLowerCase().includes(search.toLowerCase()) ||
+        (request.pickupLocation || "").toLowerCase().includes(search.toLowerCase()) ||
+        (request.destination || "").toLowerCase().includes(search.toLowerCase());
 
       return matchesStatus && matchesSearch;
     });
   }, [requests, statusFilter, search]);
 
   const handleStatusUpdate = async (id, newStatus) => {
+    setError("");
+
     try {
       const updated = await updateRequestStatus(id, newStatus);
+
       setRequests((prev) =>
-        prev.map((r) => (r._id === updated._id ? updated : r))
+        prev.map((request) => (request._id === updated._id ? updated : request))
       );
     } catch (err) {
-      console.error(err.message);
+      setError(err.message || "Failed to update request status.");
     }
   };
 
@@ -68,7 +74,7 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
                   <input
                     className="input"
                     type="text"
-                    placeholder="Search by requester or type"
+                    placeholder="Search by requester, type, pickup, or destination"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
@@ -90,12 +96,14 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
               </div>
             </div>
 
-            {loading && (
-              <div className="info-box">Loading requests...</div>
-            )}
+            {loading && <div className="info-box">Loading requests...</div>}
 
-            {error && (
-              <div className="error-box">{error}</div>
+            {error && <div className="warning-box">{error}</div>}
+
+            {!loading && !error && filteredRequests.length === 0 && (
+              <div className="info-box" style={{ marginBottom: 18 }}>
+                No requests match the current filters.
+              </div>
             )}
 
             <div className="grid-3">
@@ -111,34 +119,39 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
                       flexWrap: "wrap",
                     }}
                   >
-                    <div>
-                      <h3>{request.requester}</h3>
-                      <div className="route-meta">
-                        {request.type} • {request.date}
-                      </div>
+                    <h3>{request.submittedBy?.name || request.requester || "Unknown requester"}</h3>
+                      <span className={getStatusClassName(request.status)}>
+                        {request.status}
+                      </span>
+                    <div className="route-meta">
+                      {request.submittedBy?.email && `${request.submittedBy.email} • `}
+                      {request.type} • {request.date}
                     </div>
 
-                    <span className={getStatusClassName(request.status)}>
-                      {request.status}
-                    </span>
+                    
                   </div>
 
                   <div className="list">
                     <div className="list-item">
                       <strong>From:</strong> {request.pickupLocation}
                     </div>
+
                     <div className="list-item">
                       <strong>To:</strong> {request.destination}
                     </div>
+
                     <div className="list-item">
                       <strong>Departure:</strong> {request.departureTime}
                     </div>
+
                     <div className="list-item">
                       <strong>Return:</strong> {request.returnTime}
                     </div>
+
                     <div className="list-item">
                       <strong>Passengers:</strong> {request.passengers}
                     </div>
+
                     {request.notes && (
                       <div className="list-item">
                         <strong>Notes:</strong> {request.notes}
@@ -157,6 +170,7 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
                     <button
                       className="primary-btn"
                       onClick={() => handleStatusUpdate(request._id, "Approved")}
+                      disabled={request.status === "Approved"}
                     >
                       Approve
                     </button>
@@ -164,6 +178,7 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
                     <button
                       className="danger-btn"
                       onClick={() => handleStatusUpdate(request._id, "Rejected")}
+                      disabled={request.status === "Rejected"}
                     >
                       Reject
                     </button>
@@ -171,12 +186,6 @@ export default function RequestsDashboard({ darkMode, setDarkMode }) {
                 </div>
               ))}
             </div>
-
-            {!loading && !error && filteredRequests.length === 0 && (
-              <div className="info-box" style={{ marginTop: 18 }}>
-                No requests match the current filters.
-              </div>
-            )}
           </div>
         </section>
       </main>

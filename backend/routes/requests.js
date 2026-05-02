@@ -11,10 +11,16 @@ const {
 const auth = require("../middleware/auth");
 const roleGuard = require("../middleware/roleGuard");
 
+// Faculty creates a request
 router.post("/", auth, roleGuard("faculty"), createRequest);
-router.get("/", auth, roleGuard("faculty"), getRequests);
+
+// Faculty sees only their own requests
+router.get("/mine", auth, roleGuard("faculty"), getMyRequests);
+
+// Admin sees all requests
 router.get("/", auth, roleGuard("admin"), getRequests);
-router.get("/mine", auth, getMyRequests);
+
+// Admin updates request status
 router.patch("/:id/status", auth, roleGuard("admin"), updateRequestStatus);
 
 module.exports = router;
