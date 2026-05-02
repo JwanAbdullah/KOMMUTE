@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api";
+const API_URL = "http://localhost:5001/api";
 
 function getToken() {
   const storedUser = JSON.parse(localStorage.getItem("kommuteUser"));

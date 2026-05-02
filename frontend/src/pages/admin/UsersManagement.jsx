@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "http://localhost:5001/api";
 
 export default function UsersManagement({ darkMode, setDarkMode }) {
   const [search, setSearch] = useState("");

@@ -124,7 +124,7 @@ function getIntervalRouteWaitInfo(route, now) {
 function getRouteWaitInfo(route, now) {
   if (!route) return null;
 
-  if (route.scheduleType === "fixed") {
+  if (route.scheduleType === "fixed" || (route.trips?.length && !route.startTime)) {
     return getFixedRouteWaitInfo(route, now);
   }
 
@@ -145,7 +145,7 @@ export default function Home({ darkMode, setDarkMode }) {
   const [homeRouteError, setHomeRouteError] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/routes")
+    fetch("http://localhost:5001/api/routes")
       .then((res) => res.json())
       .then(setRoutes)
       .catch((err) => console.error("Failed to fetch routes:", err));
@@ -190,7 +190,7 @@ export default function Home({ darkMode, setDarkMode }) {
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
     return routes.filter((route) => {
-      if (route.scheduleType === "fixed" && route.trips?.length) {
+      if ((route.scheduleType === "fixed" || (route.trips?.length && !route.startTime)) && route.trips?.length) {
         return route.trips.some((trip) => {
           const depart = parseTimeToMinutes(trip.depart);
           const ret = parseTimeToMinutes(trip.return);
@@ -198,7 +198,7 @@ export default function Home({ darkMode, setDarkMode }) {
         });
       }
 
-      if (route.scheduleType === "interval" && route.startTime && route.endTime) {
+      if (route.startTime && route.endTime) {
         const start = parseTimeToMinutes(route.startTime);
         const end = parseTimeToMinutes(route.endTime);
         return currentMinutes >= start && currentMinutes <= end;
@@ -268,12 +268,14 @@ export default function Home({ darkMode, setDarkMode }) {
   }, [now, routes]);
 
   const nextDepartureDisplay = useMemo(() => {
-    const times = routes
+    const infos = routes
       .map((r) => getRouteWaitInfo(r, now))
-      .filter((i) => i && i.nextArrival)
-      .map((i) => i.nextArrival);
+      .filter((i) => i && i.nextArrival && typeof i.waitMinutes === "number");
 
-    return times.length ? times[0] : "--";
+    if (!infos.length) return "--";
+
+    infos.sort((a, b) => a.waitMinutes - b.waitMinutes);
+    return infos[0].nextArrival;
   }, [now, routes]);
 
   useEffect(() => {
