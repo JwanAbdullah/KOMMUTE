@@ -71,8 +71,7 @@ export default function App() {
         <Route path="/BusStops" element={<BusStops darkMode={darkMode} setDarkMode={setDarkMode} />}/>
         <Route path="/register" element={<Register />} />
         <Route path="/admin/users-management" element={
-    <UsersManagement darkMode={darkMode} setDarkMode={setDarkMode} /> }
- />
+    <UsersManagement darkMode={darkMode} setDarkMode={setDarkMode} /> } />
       </Routes>
     </BrowserRouter>
   );

@@ -1,47 +1,21 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
+import {
+  getDrivers,
+  createDriver,
+  updateDriver,
+  deleteDriver,
+} from "../../services/driverService";
 
-const initialDrivers = [
-  {
-    id: "DRV-101",
-    name: "Ahmed Alharbi",
-    assignedRoute: "Route 2",
-    status: "Active",
-    phone: "+966 5X XXX XXXX",
-    lastUpdate: "5 min ago",
-  },
-  {
-    id: "DRV-102",
-    name: "Mansour Alotaibi",
-    assignedRoute: "Route 5",
-    status: "On Break",
-    phone: "+966 5X XXX XXXX",
-    lastUpdate: "12 min ago",
-  },
-  {
-    id: "DRV-103",
-    name: "Khaled Alghamdi",
-    assignedRoute: "Route 1",
-    status: "Delayed",
-    phone: "+966 5X XXX XXXX",
-    lastUpdate: "2 min ago",
-  },
-  {
-    id: "DRV-104",
-    name: "Faisal Almutairi",
-    assignedRoute: "Route 8",
-    status: "Active",
-    phone: "+966 5X XXX XXXX",
-    lastUpdate: "7 min ago",
-  },
-];
 
 export default function DriversDashboard({ darkMode, setDarkMode }) {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [drivers, setDrivers] = useState(initialDrivers);
+  const [drivers, setDrivers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [showAddDriverModal, setShowAddDriverModal] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
@@ -55,7 +29,7 @@ export default function DriversDashboard({ darkMode, setDarkMode }) {
     status: "Active",
     phone: "",
   });
-
+  
   const [editDriver, setEditDriver] = useState({
     id: "",
     name: "",
@@ -64,6 +38,12 @@ export default function DriversDashboard({ darkMode, setDarkMode }) {
     phone: "",
     lastUpdate: "",
   });
+  useEffect(() => {
+    getDrivers()
+      .then(setDrivers)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredDrivers = useMemo(() => {
     return drivers.filter((driver) => {

@@ -1,11 +1,12 @@
 const express = require('express')
 const router = express.Router()
 const { getDrivers, createDriver, updateDriver, deleteDriver } = require('../controllers/driverController')
-const { protect, restrictTo } = require('../middleware/auth')
+const auth = require("../middleware/auth");
+const roleGuard = require("../middleware/roleGuard");
 
-router.get('/', protect, restrictTo('admin'), getDrivers)
-router.post('/', protect, restrictTo('admin'), createDriver)
-router.patch('/:id', protect, restrictTo('admin'), updateDriver)
-router.delete('/:id', protect, restrictTo('admin'), deleteDriver)
+router.get('/', auth, roleGuard('admin'), getDrivers)
+router.post('/', auth, roleGuard('admin'), createDriver)
+router.patch('/:id', auth, roleGuard('admin'), updateDriver)
+router.delete('/:id', auth, roleGuard('admin'), deleteDriver)
 
 module.exports = router
