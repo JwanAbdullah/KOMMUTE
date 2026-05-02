@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 
@@ -32,7 +31,6 @@ export default function BusStops({ darkMode, setDarkMode }) {
       setLocationStatus("Location is not supported by this browser.");
       return;
     }
-
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
@@ -48,7 +46,6 @@ export default function BusStops({ darkMode, setDarkMode }) {
   return (
     <div className={darkMode ? "app-shell dark" : "app-shell"}>
       <Header darkMode={darkMode} setDarkMode={setDarkMode} />
-
       <main>
         <section className="section">
           <div className="container">
@@ -56,43 +53,28 @@ export default function BusStops({ darkMode, setDarkMode }) {
               <div className="back-btn-wrap">
                 <Link to="/" className="secondary-btn">← Back Home</Link>
               </div>
-
               <h1>Bus Stops Map</h1>
               <p>All campus bus stops pinned in one place.</p>
               <p className="map-current-time">{locationStatus}</p>
             </div>
-
             <div className="full-bus-stops-map">
               <MapContainer
-                center={userLocation || [26.308, 50.147]}
+                center={[26.308, 50.147]}
                 zoom={14}
-                zoomControl={false}
-                scrollWheelZoom={false}
-                doubleClickZoom={false}
-                dragging={false}
-                touchZoom={false}
-                boxZoom={false}
-                keyboard={false}
                 style={{ height: "100%", width: "100%" }}
               >
                 <TileLayer
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   attribution="© OpenStreetMap contributors"
                 />
-
                 {Object.entries(busStops).map(([name, position]) => (
-                  <Marker position={userLocation}>
-                    <Popup>
-                      <strong>📍 You are here</strong>
-                    </Popup>
+                  <Marker key={name} position={position}>
+                    <Popup>{name}</Popup>
                   </Marker>
                 ))}
-
                 {userLocation && (
-                  <Marker position={userLocation}>
-                    <Popup>
-                      <strong>You are here</strong>
-                    </Popup>
+                  <Marker key="user-location" position={userLocation}>
+                    <Popup><strong>You are here</strong></Popup>
                   </Marker>
                 )}
               </MapContainer>
@@ -100,7 +82,6 @@ export default function BusStops({ darkMode, setDarkMode }) {
           </div>
         </section>
       </main>
-
       <Footer />
     </div>
   );
