@@ -35,3 +35,11 @@ app.use("/api/routes", routeRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://kommute-jy1pif7gf-jwanabdullahs-projects.vercel.app/"
+  ],
+  credentials: true
+}));
