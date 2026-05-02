@@ -16,7 +16,7 @@ import RequestsDashboard from "./pages/admin/RequestsDashboard";
 import ReportsDashboard from "./pages/admin/ReportsDashboard";
 import Resources from "./pages/Routes";
 import FAQ from "./pages/FAQ";
-import BusStops from "./pages/BusStops";
+import BusStops from "./pages/busStops";
 import Register from "./pages/Register";
 import UsersManagement from "./pages/admin/UsersManagement";
 
